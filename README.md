@@ -23,7 +23,10 @@ pnpm install
 pnpm dev
 ```
 
-The app starts on <http://localhost:3000>. Sign in with the seeded demo user:
+The app starts on <http://localhost:3001> — port 3000 is left free for the API,
+which the OpenAPI document places at `http://localhost:3000/v1` locally.
+
+With the mock enabled (the default in `.env.example`), sign in with the seeded demo user:
 
 ```
 ana.souza@example.com
@@ -47,7 +50,9 @@ seconds, Pix charges get paid, KYC is reviewed). State is persisted in `localSto
 so a page reload keeps the data; clear the `carteira-digital:mock-db` key to reseed.
 
 Set `VITE_ENABLE_MOCK_API=false` to talk to the real API. No other change is needed —
-every screen goes through the same endpoint modules.
+every screen goes through the same endpoint modules. Because the app and the API sit on
+different ports, the API must allow the app's origin via CORS (including the
+`Authorization`, `Idempotency-Key` and `If-Match` request headers).
 
 ## Screens
 

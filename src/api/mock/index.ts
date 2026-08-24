@@ -1,14 +1,4 @@
 import { apiBaseUrl, mockApiEnabled } from "../config";
-import { matchRoute } from "./router";
-
-import "./handlers/auth";
-import "./handlers/users";
-import "./handlers/wallets";
-import "./handlers/transactions";
-import "./handlers/payment-methods";
-import "./handlers/pix";
-import "./handlers/beneficiaries";
-import "./handlers/webhooks";
 
 const MIN_LATENCY_MS = 120;
 const MAX_LATENCY_MS = 320;
@@ -27,6 +17,12 @@ function baseUrl() {
 	return new URL(apiBaseUrl, origin);
 }
 
+// Carregado sob demanda: com o mock desligado o `import()` fica inalcançável e o
+// bundler descarta os handlers e os dados de seed.
+function loadRouter() {
+	return import("./handlers");
+}
+
 async function readBody(request: Request) {
 	try {
 		return (await request.clone().json()) as Record<string, unknown>;
@@ -41,6 +37,7 @@ export function installMockApi() {
 
 	const base = baseUrl();
 	const passthrough = globalThis.fetch.bind(globalThis);
+	const routerReady = loadRouter();
 
 	globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 		const request = new Request(input, init);
@@ -50,6 +47,7 @@ export function installMockApi() {
 		if (!targetsApi) return passthrough(input, init);
 
 		const pathname = url.pathname.slice(base.pathname.length) || "/";
+		const { matchRoute } = await routerReady;
 		const matched = matchRoute(request.method, pathname);
 		await simulateLatency();
 
@@ -75,5 +73,3 @@ export function installMockApi() {
 		});
 	};
 }
-
-export { resetDb } from "./db";

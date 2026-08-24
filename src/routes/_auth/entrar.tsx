@@ -3,7 +3,7 @@ import { IconEye, IconEyeOff, IconWallet } from "@tabler/icons-react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-
+import { mockApiEnabled } from "@/api/config";
 import { type LoginForm, loginFormSchema } from "@/api/schemas/auth";
 import { useLogin } from "@/auth/mutations";
 import { FormRow } from "@/components/form/fields";
@@ -128,18 +128,20 @@ function LoginScreen() {
 					</Link>
 				</p>
 
-				<button
-					type="button"
-					onClick={() => form.reset(demoCredentials)}
-					className="w-full border border-border/60 border-dashed p-3 text-left transition-colors hover:bg-muted/40"
-				>
-					<p className="font-medium text-xs">
-						Preencher credenciais de demonstração
-					</p>
-					<p className="mt-0.5 text-muted-foreground text-xs">
-						{demoCredentials.email} · {demoCredentials.password}
-					</p>
-				</button>
+				{mockApiEnabled ? (
+					<button
+						type="button"
+						onClick={() => form.reset(demoCredentials)}
+						className="w-full border border-border/60 border-dashed p-3 text-left transition-colors hover:bg-muted/40"
+					>
+						<p className="font-medium text-xs">
+							Preencher credenciais de demonstração
+						</p>
+						<p className="mt-0.5 text-muted-foreground text-xs">
+							{demoCredentials.email} · {demoCredentials.password}
+						</p>
+					</button>
+				) : null}
 			</div>
 		</div>
 	);
