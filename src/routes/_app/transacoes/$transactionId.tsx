@@ -16,7 +16,12 @@ import { TransactionIcon } from "@/components/transactions/transaction-icon";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Money } from "@/domain/money";
 import { formatDateTime } from "@/lib/format";
-import { transactionStatusLabels, transactionTypeLabels } from "@/lib/labels";
+import {
+	depositMethodLabels,
+	reversalReasonLabels,
+	transactionStatusLabels,
+	transactionTypeLabels,
+} from "@/lib/labels";
 
 export const Route = createFileRoute("/_app/transacoes/$transactionId")({
 	component: TransactionScreen,
@@ -43,8 +48,12 @@ const metadataLabels: Record<string, string> = {
 	payment_method_id: "Método de pagamento",
 };
 
+const metadataValueLabels: Record<string, string> = {
+	...depositMethodLabels,
+	...reversalReasonLabels,
+};
+
 function formatMetadataValue(key: string, value: unknown) {
-	if (value === null || value === undefined || value === "") return "—";
 	if (
 		key.endsWith("_at") ||
 		key === "estimated_settlement" ||
@@ -52,7 +61,7 @@ function formatMetadataValue(key: string, value: unknown) {
 	) {
 		return formatDateTime(String(value));
 	}
-	return String(value);
+	return metadataValueLabels[String(value)] ?? String(value);
 }
 
 function TransactionScreen() {
@@ -73,8 +82,11 @@ function TransactionScreen() {
 	const data = transaction.data;
 	const walletIds = (wallets.data?.data ?? []).map((wallet) => wallet.id);
 	const direction = directionFor(data, walletIds);
+	const awaitingPayment = data.status === "pending";
 	const qrCode =
-		typeof data.metadata.qr_code === "string" ? data.metadata.qr_code : null;
+		awaitingPayment && typeof data.metadata.qr_code === "string"
+			? data.metadata.qr_code
+			: null;
 	const canReverse =
 		data.status === "completed" && REVERSIBLE_TYPES.includes(data.type);
 	const metadataEntries = Object.entries(data.metadata).filter(

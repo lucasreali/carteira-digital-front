@@ -32,11 +32,17 @@ export function useTransactions(filters: TransactionFilters = {}) {
 	});
 }
 
+const SETTLING_STATUSES = ["pending", "processing"];
+
 export function useTransaction(transactionId: string) {
 	return useQuery({
 		queryKey: queryKeys.transaction(transactionId),
 		queryFn: () => transactionEndpoints.get(transactionId),
 		enabled: Boolean(transactionId),
+		refetchInterval: (query) =>
+			SETTLING_STATUSES.includes(query.state.data?.status ?? "")
+				? 4_000
+				: false,
 	});
 }
 
