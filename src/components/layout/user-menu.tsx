@@ -1,5 +1,5 @@
-import { IconChevronDown, IconLogout } from "@tabler/icons-react";
-import { useNavigate } from "@tanstack/react-router";
+import { IconChevronDown, IconLogout, IconUser } from "@tabler/icons-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 import type { User } from "@/api/schemas/user";
 import { useLogout } from "@/auth/mutations";
@@ -61,6 +61,11 @@ export function UserMenu({ user }: { user: User }) {
 
 			<DropdownMenuContent align="start" className="w-56">
 				<DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem render={<Link to="/perfil" />}>
+					<IconUser />
+					Perfil
+				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					variant="destructive"

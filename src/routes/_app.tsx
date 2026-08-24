@@ -111,7 +111,16 @@ function AppLayout() {
 						<span className="font-heading font-semibold text-sm">Carteira</span>
 					</div>
 
-					<ThemeToggle />
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							render={<Link to="/transferir" />}
+						>
+							Transferir
+						</Button>
+						<ThemeToggle />
+					</div>
 				</header>
 
 				<main className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 py-6 lg:px-8 lg:py-8">
