@@ -14,6 +14,7 @@ import { useTransactions } from "@/api/queries/transactions";
 import { useWallets } from "@/api/queries/wallets";
 import type { Wallet } from "@/api/schemas/wallet";
 import { useCurrentUser } from "@/auth/use-session";
+import { ButtonLink } from "@/components/common/button-link";
 import {
 	EmptyState,
 	ErrorState,
@@ -85,14 +86,10 @@ function DashboardScreen() {
 						Sua carteira hoje
 					</h1>
 				</div>
-				<Button
-					variant="outline"
-					size="sm"
-					render={<Link to="/carteiras/nova" />}
-				>
+				<ButtonLink variant="outline" size="sm" to="/carteiras/nova">
 					<IconPlus />
 					Nova carteira
-				</Button>
+				</ButtonLink>
 			</div>
 
 			{user?.kyc_status !== "approved" ? (
@@ -103,13 +100,9 @@ function DashboardScreen() {
 						carteiras.
 					</AlertDescription>
 					<AlertAction>
-						<Button
-							size="sm"
-							variant="outline"
-							render={<Link to="/perfil/kyc" />}
-						>
+						<ButtonLink size="sm" variant="outline" to="/perfil/kyc">
 							Verificar agora
-						</Button>
+						</ButtonLink>
 					</AlertAction>
 				</Alert>
 			) : null}
@@ -168,15 +161,15 @@ function DashboardScreen() {
 
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 						{quickActions.map((action) => (
-							<Button
+							<ButtonLink
 								key={action.to}
 								variant="outline"
 								className="h-auto flex-col gap-1.5 py-3"
-								render={<Link to={action.to} />}
+								to={action.to}
 							>
 								<action.icon className="size-4 text-primary" />
 								<span className="text-xs">{action.label}</span>
-							</Button>
+							</ButtonLink>
 						))}
 					</div>
 				</CardContent>
@@ -185,9 +178,9 @@ function DashboardScreen() {
 			<section className="space-y-3">
 				<div className="flex items-center justify-between">
 					<h2 className="font-heading font-semibold text-lg">Carteiras</h2>
-					<Button variant="ghost" size="sm" render={<Link to="/carteiras" />}>
+					<ButtonLink variant="ghost" size="sm" to="/carteiras">
 						Ver todas
-					</Button>
+					</ButtonLink>
 				</div>
 
 				{wallets.isPending ? (
@@ -199,9 +192,9 @@ function DashboardScreen() {
 						title="Nenhuma carteira ainda"
 						description="Crie uma carteira para começar a movimentar."
 						action={
-							<Button size="sm" render={<Link to="/carteiras/nova" />}>
+							<ButtonLink size="sm" to="/carteiras/nova">
 								Criar carteira
-							</Button>
+							</ButtonLink>
 						}
 					/>
 				) : (
@@ -244,9 +237,9 @@ function DashboardScreen() {
 					<h2 className="font-heading font-semibold text-lg">
 						Últimas movimentações
 					</h2>
-					<Button variant="ghost" size="sm" render={<Link to="/transacoes" />}>
+					<ButtonLink variant="ghost" size="sm" to="/transacoes">
 						Ver extrato
-					</Button>
+					</ButtonLink>
 				</div>
 
 				{transactions.isPending ? (

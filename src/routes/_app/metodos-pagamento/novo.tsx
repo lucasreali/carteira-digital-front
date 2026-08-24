@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconArrowLeft } from "@tabler/icons-react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import {
 	type CardForm,
 	cardFormSchema,
 } from "@/api/schemas/payment-method";
+import { ButtonLink } from "@/components/common/button-link";
 import { PageHeader } from "@/components/common/page-header";
 import { FormRow, SelectInput, SwitchRow } from "@/components/form/fields";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -275,14 +276,10 @@ function NewPaymentMethodScreen() {
 				title="Vincular método de pagamento"
 				description="Conta bancária para saques, cartão tokenizado para depósitos."
 				actions={
-					<Button
-						variant="ghost"
-						size="sm"
-						render={<Link to="/metodos-pagamento" />}
-					>
+					<ButtonLink variant="ghost" size="sm" to="/metodos-pagamento">
 						<IconArrowLeft />
 						Voltar
-					</Button>
+					</ButtonLink>
 				}
 			/>
 

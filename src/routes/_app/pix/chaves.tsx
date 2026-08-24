@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconArrowLeft, IconKey, IconTrash } from "@tabler/icons-react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ import {
 	type CreatePixKeyForm,
 	createPixKeyFormSchema,
 } from "@/api/schemas/pix";
+import { ButtonLink } from "@/components/common/button-link";
 import { CopyButton } from "@/components/common/copy-button";
 import {
 	EmptyState,
@@ -107,10 +108,10 @@ function PixKeysScreen() {
 				title="Chaves Pix"
 				description="Cada chave aponta para uma carteira. Limite de 5 chaves por titular."
 				actions={
-					<Button variant="ghost" size="sm" render={<Link to="/pix" />}>
+					<ButtonLink variant="ghost" size="sm" to="/pix">
 						<IconArrowLeft />
 						Pix
-					</Button>
+					</ButtonLink>
 				}
 			/>
 

@@ -1,17 +1,18 @@
 import { IconArrowLeft } from "@tabler/icons-react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { QRCodeSVG } from "qrcode.react";
 
 import { useTransaction } from "@/api/queries/transactions";
 import { useWallets } from "@/api/queries/wallets";
+import { AmountText } from "@/components/common/amount-text";
+import { ButtonLink } from "@/components/common/button-link";
 import { CopyButton } from "@/components/common/copy-button";
 import { ErrorState, LoadingRows } from "@/components/common/data-state";
 import { PageHeader } from "@/components/common/page-header";
 import { StatusBadge } from "@/components/common/status-badge";
+import { directionFor } from "@/components/transactions/direction";
 import { ReversalDialog } from "@/components/transactions/reversal-dialog";
 import { TransactionIcon } from "@/components/transactions/transaction-icon";
-import { directionFor } from "@/components/transactions/transaction-row";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Money } from "@/domain/money";
 import { formatDateTime } from "@/lib/format";
@@ -87,14 +88,10 @@ function TransactionScreen() {
 				description={formatDateTime(data.created_at)}
 				actions={
 					<>
-						<Button
-							variant="ghost"
-							size="sm"
-							render={<Link to="/transacoes" />}
-						>
+						<ButtonLink variant="ghost" size="sm" to="/transacoes">
 							<IconArrowLeft />
 							Transações
-						</Button>
+						</ButtonLink>
 						{canReverse ? <ReversalDialog transaction={data} /> : null}
 					</>
 				}
@@ -104,10 +101,12 @@ function TransactionScreen() {
 				<CardContent className="flex flex-wrap items-center gap-4 py-6">
 					<TransactionIcon type={data.type} direction={direction} size="lg" />
 					<div className="flex-1 space-y-1">
-						<p className="numeric font-heading font-semibold text-3xl tabular-nums">
-							{direction === "credit" ? "+" : "−"}
-							{Money.fromCents(data.amount, data.currency).toString()}
-						</p>
+						<AmountText
+							cents={data.amount}
+							currency={data.currency}
+							direction={direction}
+							className="font-heading font-semibold text-3xl"
+						/>
 						<p className="text-muted-foreground text-sm">
 							{data.description ?? "Sem descrição"}
 						</p>

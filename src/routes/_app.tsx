@@ -10,6 +10,7 @@ import { useState } from "react";
 
 import { sessionStore } from "@/auth/session";
 import { useCurrentUser } from "@/auth/use-session";
+import { ButtonLink } from "@/components/common/button-link";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
@@ -112,13 +113,9 @@ function AppLayout() {
 					</div>
 
 					<div className="flex items-center gap-2">
-						<Button
-							variant="outline"
-							size="sm"
-							render={<Link to="/transferir" />}
-						>
+						<ButtonLink variant="outline" size="sm" to="/transferir">
 							Transferir
-						</Button>
+						</ButtonLink>
 						<ThemeToggle />
 					</div>
 				</header>

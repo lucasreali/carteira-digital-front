@@ -1,12 +1,12 @@
 import { IconArrowLeft, IconListDetails } from "@tabler/icons-react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { useBalance, useWallet } from "@/api/queries/wallets";
+import { ButtonLink } from "@/components/common/button-link";
 import { CopyButton } from "@/components/common/copy-button";
 import { ErrorState, LoadingRows } from "@/components/common/data-state";
 import { PageHeader } from "@/components/common/page-header";
 import { StatusBadge } from "@/components/common/status-badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CloseWalletDialog } from "@/components/wallets/close-wallet-dialog";
@@ -59,20 +59,19 @@ function WalletScreen() {
 				description={`${currency} · atualizada em ${formatDateTime(wallet.data.updated_at)}`}
 				actions={
 					<>
-						<Button variant="ghost" size="sm" render={<Link to="/carteiras" />}>
+						<ButtonLink variant="ghost" size="sm" to="/carteiras">
 							<IconArrowLeft />
 							Carteiras
-						</Button>
-						<Button
+						</ButtonLink>
+						<ButtonLink
 							variant="outline"
 							size="sm"
-							render={
-								<Link to="/carteiras/$walletId/extrato" params={{ walletId }} />
-							}
+							to="/carteiras/$walletId/extrato"
+							params={{ walletId }}
 						>
 							<IconListDetails />
 							Extrato
-						</Button>
+						</ButtonLink>
 						<EditWalletDialog wallet={wallet.data} />
 						<CloseWalletDialog wallet={wallet.data} />
 					</>

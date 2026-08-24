@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconArrowLeft } from "@tabler/icons-react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -9,6 +9,7 @@ import {
 	type CreateWalletForm,
 	createWalletFormSchema,
 } from "@/api/schemas/wallet";
+import { ButtonLink } from "@/components/common/button-link";
 import { PageHeader } from "@/components/common/page-header";
 import { FormRow, SelectInput, SwitchRow } from "@/components/form/fields";
 import { Button } from "@/components/ui/button";
@@ -56,10 +57,10 @@ function NewWalletScreen() {
 				title="Nova carteira"
 				description="Separe objetivos diferentes em carteiras independentes."
 				actions={
-					<Button variant="ghost" size="sm" render={<Link to="/carteiras" />}>
+					<ButtonLink variant="ghost" size="sm" to="/carteiras">
 						<IconArrowLeft />
 						Voltar
-					</Button>
+					</ButtonLink>
 				}
 			/>
 
@@ -117,9 +118,9 @@ function NewWalletScreen() {
 							/>
 
 							<div className="flex justify-end gap-2">
-								<Button variant="ghost" render={<Link to="/carteiras" />}>
+								<ButtonLink variant="ghost" to="/carteiras">
 									Cancelar
-								</Button>
+								</ButtonLink>
 								<Button type="submit" disabled={createWallet.isPending}>
 									{createWallet.isPending ? <Spinner /> : null}
 									Criar carteira

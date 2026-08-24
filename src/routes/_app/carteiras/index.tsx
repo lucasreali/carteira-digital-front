@@ -2,6 +2,7 @@ import { IconPlus, IconWallet } from "@tabler/icons-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { useWallets } from "@/api/queries/wallets";
+import { ButtonLink } from "@/components/common/button-link";
 import {
 	EmptyState,
 	ErrorState,
@@ -9,7 +10,6 @@ import {
 } from "@/components/common/data-state";
 import { PageHeader } from "@/components/common/page-header";
 import { StatusBadge } from "@/components/common/status-badge";
-import { Button } from "@/components/ui/button";
 import { Money } from "@/domain/money";
 import { formatDate } from "@/lib/format";
 import { walletStatusLabels } from "@/lib/labels";
@@ -28,10 +28,10 @@ function WalletsScreen() {
 				title="Carteiras"
 				description="Cada carteira tem saldo, moeda e chaves Pix próprias."
 				actions={
-					<Button size="sm" render={<Link to="/carteiras/nova" />}>
+					<ButtonLink size="sm" to="/carteiras/nova">
 						<IconPlus />
 						Nova carteira
-					</Button>
+					</ButtonLink>
 				}
 			/>
 
@@ -45,9 +45,9 @@ function WalletsScreen() {
 					title="Nenhuma carteira"
 					description="Crie sua primeira carteira para começar a movimentar."
 					action={
-						<Button size="sm" render={<Link to="/carteiras/nova" />}>
+						<ButtonLink size="sm" to="/carteiras/nova">
 							Criar carteira
-						</Button>
+						</ButtonLink>
 					}
 				/>
 			) : (

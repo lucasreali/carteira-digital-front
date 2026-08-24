@@ -1,12 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconArrowLeft } from "@tabler/icons-react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
 import { usePixPayment } from "@/api/queries/pix";
 import { type PixPaymentForm, pixPaymentFormSchema } from "@/api/schemas/pix";
+import { ButtonLink } from "@/components/common/button-link";
 import { PageHeader } from "@/components/common/page-header";
 import { FormRow, MoneyInput } from "@/components/form/fields";
 import { Button } from "@/components/ui/button";
@@ -64,10 +65,10 @@ function PixPaymentScreen() {
 				title="Pagar com Pix"
 				description="Informe a chave ou cole o código copia-e-cola — nunca os dois juntos."
 				actions={
-					<Button variant="ghost" size="sm" render={<Link to="/pix" />}>
+					<ButtonLink variant="ghost" size="sm" to="/pix">
 						<IconArrowLeft />
 						Pix
-					</Button>
+					</ButtonLink>
 				}
 			/>
 

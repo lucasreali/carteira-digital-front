@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconArrowLeft, IconUpload } from "@tabler/icons-react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -9,6 +9,7 @@ import {
 	type KycSubmissionForm,
 	kycSubmissionFormSchema,
 } from "@/api/schemas/user";
+import { ButtonLink } from "@/components/common/button-link";
 import { ErrorState, LoadingRows } from "@/components/common/data-state";
 import { PageHeader } from "@/components/common/page-header";
 import { StatusBadge } from "@/components/common/status-badge";
@@ -122,10 +123,10 @@ function KycScreen() {
 				title="Verificação de identidade"
 				description="O nível do KYC define os limites diários e noturnos da conta."
 				actions={
-					<Button variant="ghost" size="sm" render={<Link to="/perfil" />}>
+					<ButtonLink variant="ghost" size="sm" to="/perfil">
 						<IconArrowLeft />
 						Perfil
-					</Button>
+					</ButtonLink>
 				}
 			/>
 

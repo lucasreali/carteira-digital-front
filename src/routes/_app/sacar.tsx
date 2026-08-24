@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
@@ -10,6 +10,7 @@ import {
 	type WithdrawalForm,
 	withdrawalFormSchema,
 } from "@/api/schemas/transaction";
+import { ButtonLink } from "@/components/common/button-link";
 import { PageHeader } from "@/components/common/page-header";
 import { FormRow, MoneyInput, SelectInput } from "@/components/form/fields";
 import {
@@ -93,13 +94,9 @@ function WithdrawalScreen() {
 						Vincule e verifique uma conta bancária antes de solicitar um saque.
 					</AlertDescription>
 					<AlertAction>
-						<Button
-							size="sm"
-							variant="outline"
-							render={<Link to="/metodos-pagamento" />}
-						>
+						<ButtonLink size="sm" variant="outline" to="/metodos-pagamento">
 							Vincular conta
-						</Button>
+						</ButtonLink>
 					</AlertAction>
 				</Alert>
 			) : null}

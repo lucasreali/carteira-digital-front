@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useStatement, useWallet } from "@/api/queries/wallets";
 import { AmountText } from "@/components/common/amount-text";
+import { ButtonLink } from "@/components/common/button-link";
 import {
 	EmptyState,
 	ErrorState,
@@ -55,14 +56,15 @@ function StatementScreen() {
 						: "Lançamentos da carteira"
 				}
 				actions={
-					<Button
+					<ButtonLink
 						variant="ghost"
 						size="sm"
-						render={<Link to="/carteiras/$walletId" params={{ walletId }} />}
+						to="/carteiras/$walletId"
+						params={{ walletId }}
 					>
 						<IconArrowLeft />
 						Voltar
-					</Button>
+					</ButtonLink>
 				}
 			/>
 

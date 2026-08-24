@@ -1,10 +1,11 @@
 import { IconLogout, IconShieldCheck } from "@tabler/icons-react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { useCloseAccount, useProfile } from "@/api/queries/users";
 import { useLogout } from "@/auth/mutations";
+import { ButtonLink } from "@/components/common/button-link";
 import { ErrorState, LoadingRows } from "@/components/common/data-state";
 import { PageHeader } from "@/components/common/page-header";
 import { StatusBadge } from "@/components/common/status-badge";
@@ -88,14 +89,10 @@ function ProfileScreen() {
 				title="Perfil"
 				description="Dados do titular, credenciais e encerramento da conta."
 				actions={
-					<Button
-						variant="outline"
-						size="sm"
-						render={<Link to="/perfil/kyc" />}
-					>
+					<ButtonLink variant="outline" size="sm" to="/perfil/kyc">
 						<IconShieldCheck />
 						Verificação
-					</Button>
+					</ButtonLink>
 				}
 			/>
 

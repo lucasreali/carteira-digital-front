@@ -12,6 +12,7 @@ import {
 
 import type { TransactionType } from "@/api/schemas/transaction";
 import { cn } from "@/lib/utils";
+import type { MovementDirection } from "./direction";
 
 const icons: Record<TransactionType, TablerIcon> = {
 	deposit: IconBuildingBank,
@@ -29,7 +30,7 @@ export function TransactionIcon({
 	size = "default",
 }: {
 	type: TransactionType;
-	direction: "credit" | "debit";
+	direction: MovementDirection;
 	size?: "default" | "lg";
 }) {
 	const Icon =

@@ -7,6 +7,7 @@ import {
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { usePixKeys } from "@/api/queries/pix";
+import { ButtonLink } from "@/components/common/button-link";
 import {
 	EmptyState,
 	ErrorState,
@@ -14,7 +15,6 @@ import {
 } from "@/components/common/data-state";
 import { PageHeader } from "@/components/common/page-header";
 import { StatusBadge } from "@/components/common/status-badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { pixKeyStatusLabels, pixKeyTypeLabels } from "@/lib/labels";
 
@@ -90,9 +90,9 @@ function PixScreen() {
 							title="Nenhuma chave Pix"
 							description="Cadastre uma chave para receber pagamentos."
 							action={
-								<Button size="sm" render={<Link to="/pix/chaves" />}>
+								<ButtonLink size="sm" to="/pix/chaves">
 									Cadastrar chave
-								</Button>
+								</ButtonLink>
 							}
 						/>
 					) : (

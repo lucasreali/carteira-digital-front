@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconArrowLeft } from "@tabler/icons-react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
@@ -10,6 +10,7 @@ import {
 	type CreatePixChargeForm,
 	createPixChargeFormSchema,
 } from "@/api/schemas/pix";
+import { ButtonLink } from "@/components/common/button-link";
 import { PageHeader } from "@/components/common/page-header";
 import { FormRow, MoneyInput, SelectInput } from "@/components/form/fields";
 import { Button } from "@/components/ui/button";
@@ -70,10 +71,10 @@ function NewPixChargeScreen() {
 				title="Cobrar com Pix"
 				description="Gere um QR Code com valor fixo ou deixe o pagador escolher o valor."
 				actions={
-					<Button variant="ghost" size="sm" render={<Link to="/pix" />}>
+					<ButtonLink variant="ghost" size="sm" to="/pix">
 						<IconArrowLeft />
 						Pix
-					</Button>
+					</ButtonLink>
 				}
 			/>
 

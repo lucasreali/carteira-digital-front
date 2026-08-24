@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
-
 import { installMockApi } from "./api/mock";
+import { RouteError, RouteNotFound } from "./components/common/route-fallbacks";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
@@ -19,6 +19,8 @@ export function getRouter() {
 		scrollRestoration: true,
 		defaultPreload: "intent",
 		defaultPreloadStaleTime: 0,
+		defaultNotFoundComponent: RouteNotFound,
+		defaultErrorComponent: RouteError,
 		Wrap: ({ children }) => (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		),

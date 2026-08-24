@@ -5,26 +5,8 @@ import { AmountText } from "@/components/common/amount-text";
 import { StatusBadge } from "@/components/common/status-badge";
 import { formatDateTime } from "@/lib/format";
 import { transactionStatusLabels, transactionTypeLabels } from "@/lib/labels";
+import { counterpartyOf, directionFor } from "./direction";
 import { TransactionIcon } from "./transaction-icon";
-
-export function directionFor(
-	transaction: Transaction,
-	walletIds: ReadonlyArray<string>,
-) {
-	const owned = new Set(walletIds);
-	if (
-		transaction.destination_wallet_id &&
-		owned.has(transaction.destination_wallet_id)
-	) {
-		return "credit" as const;
-	}
-	return "debit" as const;
-}
-
-export function counterpartyOf(transaction: Transaction) {
-	const name = transaction.metadata.counterparty_name;
-	return typeof name === "string" ? name : null;
-}
 
 type TransactionRowProps = {
 	transaction: Transaction;
