@@ -15,6 +15,10 @@ import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AppInicioRouteImport } from './routes/_app/inicio'
 import { Route as AuthCriarContaRouteImport } from './routes/_auth/criar-conta'
 import { Route as AuthEntrarRouteImport } from './routes/_auth/entrar'
+import { Route as AppCarteirasIndexRouteImport } from './routes/_app/carteiras/index'
+import { Route as AppCarteirasNovaRouteImport } from './routes/_app/carteiras/nova'
+import { Route as AppCarteirasWalletIdIndexRouteImport } from './routes/_app/carteiras/$walletId/index'
+import { Route as AppCarteirasWalletIdExtratoRouteImport } from './routes/_app/carteiras/$walletId/extrato'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -44,18 +48,48 @@ const AuthEntrarRoute = AuthEntrarRouteImport.update({
   path: '/entrar',
   getParentRoute: () => AuthRoute,
 } as any)
+const AppCarteirasIndexRoute = AppCarteirasIndexRouteImport.update({
+  id: '/carteiras/',
+  path: '/carteiras/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCarteirasNovaRoute = AppCarteirasNovaRouteImport.update({
+  id: '/carteiras/nova',
+  path: '/carteiras/nova',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCarteirasWalletIdIndexRoute =
+  AppCarteirasWalletIdIndexRouteImport.update({
+    id: '/carteiras/$walletId/',
+    path: '/carteiras/$walletId/',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppCarteirasWalletIdExtratoRoute =
+  AppCarteirasWalletIdExtratoRouteImport.update({
+    id: '/carteiras/$walletId/extrato',
+    path: '/carteiras/$walletId/extrato',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/inicio': typeof AppInicioRoute
   '/criar-conta': typeof AuthCriarContaRoute
   '/entrar': typeof AuthEntrarRoute
+  '/carteiras/nova': typeof AppCarteirasNovaRoute
+  '/carteiras/': typeof AppCarteirasIndexRoute
+  '/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
+  '/carteiras/$walletId/': typeof AppCarteirasWalletIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/inicio': typeof AppInicioRoute
   '/criar-conta': typeof AuthCriarContaRoute
   '/entrar': typeof AuthEntrarRoute
+  '/carteiras/nova': typeof AppCarteirasNovaRoute
+  '/carteiras': typeof AppCarteirasIndexRoute
+  '/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
+  '/carteiras/$walletId': typeof AppCarteirasWalletIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -65,12 +99,32 @@ export interface FileRoutesById {
   '/_app/inicio': typeof AppInicioRoute
   '/_auth/criar-conta': typeof AuthCriarContaRoute
   '/_auth/entrar': typeof AuthEntrarRoute
+  '/_app/carteiras/nova': typeof AppCarteirasNovaRoute
+  '/_app/carteiras/': typeof AppCarteirasIndexRoute
+  '/_app/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
+  '/_app/carteiras/$walletId/': typeof AppCarteirasWalletIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/inicio' | '/criar-conta' | '/entrar'
+  fullPaths:
+    | '/'
+    | '/inicio'
+    | '/criar-conta'
+    | '/entrar'
+    | '/carteiras/nova'
+    | '/carteiras/'
+    | '/carteiras/$walletId/extrato'
+    | '/carteiras/$walletId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/inicio' | '/criar-conta' | '/entrar'
+  to:
+    | '/'
+    | '/inicio'
+    | '/criar-conta'
+    | '/entrar'
+    | '/carteiras/nova'
+    | '/carteiras'
+    | '/carteiras/$walletId/extrato'
+    | '/carteiras/$walletId'
   id:
     | '__root__'
     | '/'
@@ -79,6 +133,10 @@ export interface FileRouteTypes {
     | '/_app/inicio'
     | '/_auth/criar-conta'
     | '/_auth/entrar'
+    | '/_app/carteiras/nova'
+    | '/_app/carteiras/'
+    | '/_app/carteiras/$walletId/extrato'
+    | '/_app/carteiras/$walletId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -131,15 +189,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthEntrarRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_app/carteiras/': {
+      id: '/_app/carteiras/'
+      path: '/carteiras'
+      fullPath: '/carteiras/'
+      preLoaderRoute: typeof AppCarteirasIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/carteiras/nova': {
+      id: '/_app/carteiras/nova'
+      path: '/carteiras/nova'
+      fullPath: '/carteiras/nova'
+      preLoaderRoute: typeof AppCarteirasNovaRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/carteiras/$walletId/': {
+      id: '/_app/carteiras/$walletId/'
+      path: '/carteiras/$walletId'
+      fullPath: '/carteiras/$walletId/'
+      preLoaderRoute: typeof AppCarteirasWalletIdIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/carteiras/$walletId/extrato': {
+      id: '/_app/carteiras/$walletId/extrato'
+      path: '/carteiras/$walletId/extrato'
+      fullPath: '/carteiras/$walletId/extrato'
+      preLoaderRoute: typeof AppCarteirasWalletIdExtratoRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppInicioRoute: typeof AppInicioRoute
+  AppCarteirasNovaRoute: typeof AppCarteirasNovaRoute
+  AppCarteirasIndexRoute: typeof AppCarteirasIndexRoute
+  AppCarteirasWalletIdExtratoRoute: typeof AppCarteirasWalletIdExtratoRoute
+  AppCarteirasWalletIdIndexRoute: typeof AppCarteirasWalletIdIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppInicioRoute: AppInicioRoute,
+  AppCarteirasNovaRoute: AppCarteirasNovaRoute,
+  AppCarteirasIndexRoute: AppCarteirasIndexRoute,
+  AppCarteirasWalletIdExtratoRoute: AppCarteirasWalletIdExtratoRoute,
+  AppCarteirasWalletIdIndexRoute: AppCarteirasWalletIdIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
