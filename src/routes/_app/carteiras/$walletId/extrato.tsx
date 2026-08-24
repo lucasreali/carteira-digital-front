@@ -157,7 +157,15 @@ function StatementScreen() {
 												<TableCell className="whitespace-nowrap text-muted-foreground text-xs">
 													{formatDateTime(entry.created_at)}
 												</TableCell>
-												<TableCell>{entry.description}</TableCell>
+												<TableCell>
+													<Link
+														to="/transacoes/$transactionId"
+														params={{ transactionId: entry.transaction_id }}
+														className="hover:text-primary hover:underline"
+													>
+														{entry.description}
+													</Link>
+												</TableCell>
 												<TableCell className="text-right">
 													<AmountText
 														cents={entry.amount}
