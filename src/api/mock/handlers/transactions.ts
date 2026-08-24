@@ -205,9 +205,13 @@ route("POST", "/transfers", async (context) => {
 	if (amount > source.available_balance)
 		return insufficientFunds(amount, source.available_balance);
 
+	const isInternal = destination.user_id === user.id;
 	const counterparty = state.users.find(
 		(candidate) => candidate.id === destination.user_id,
 	);
+	const counterpartyName = isInternal
+		? `Carteira ${destination.alias}`
+		: (counterparty?.full_name ?? "Destinatário");
 	const scheduled = payload.scheduled_for
 		? String(payload.scheduled_for)
 		: null;
@@ -223,10 +227,7 @@ route("POST", "/transfers", async (context) => {
 		source_wallet_id: source.id,
 		destination_wallet_id: destination.id,
 		description: (payload.description as string) ?? "Transferência",
-		metadata: {
-			counterparty_name: counterparty?.full_name ?? "Carteira própria",
-			scheduled_for: scheduled,
-		},
+		metadata: { counterparty_name: counterpartyName, scheduled_for: scheduled },
 		idempotency_key: key,
 		created_at: nowIso(),
 		completed_at: scheduled ? null : nowIso(),
@@ -238,14 +239,18 @@ route("POST", "/transfers", async (context) => {
 			amount,
 			transactionId: transaction.id,
 			type: "transfer_out",
-			description: `Transferência enviada para ${counterparty?.full_name ?? destination.alias}`,
+			description: isInternal
+				? `Transferência para ${destination.alias}`
+				: `Transferência enviada para ${counterpartyName}`,
 		});
 		credit({
 			wallet: destination,
 			amount,
 			transactionId: transaction.id,
 			type: "transfer_in",
-			description: `Transferência recebida de ${user.full_name}`,
+			description: isInternal
+				? `Transferência recebida de ${source.alias}`
+				: `Transferência recebida de ${user.full_name}`,
 		});
 	}
 	commit();
