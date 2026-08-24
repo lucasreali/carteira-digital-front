@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AppDepositarRouteImport } from './routes/_app/depositar'
+import { Route as AppFavorecidosRouteImport } from './routes/_app/favorecidos'
 import { Route as AppInicioRouteImport } from './routes/_app/inicio'
 import { Route as AppSacarRouteImport } from './routes/_app/sacar'
 import { Route as AppTransferirRouteImport } from './routes/_app/transferir'
@@ -48,6 +49,11 @@ const AuthRoute = AuthRouteImport.update({
 const AppDepositarRoute = AppDepositarRouteImport.update({
   id: '/depositar',
   path: '/depositar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFavorecidosRoute = AppFavorecidosRouteImport.update({
+  id: '/favorecidos',
+  path: '/favorecidos',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInicioRoute = AppInicioRouteImport.update({
@@ -148,6 +154,7 @@ const AppPixCobrancasChargeIdRoute = AppPixCobrancasChargeIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/depositar': typeof AppDepositarRoute
+  '/favorecidos': typeof AppFavorecidosRoute
   '/inicio': typeof AppInicioRoute
   '/sacar': typeof AppSacarRoute
   '/transferir': typeof AppTransferirRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/depositar': typeof AppDepositarRoute
+  '/favorecidos': typeof AppFavorecidosRoute
   '/inicio': typeof AppInicioRoute
   '/sacar': typeof AppSacarRoute
   '/transferir': typeof AppTransferirRoute
@@ -195,6 +203,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_auth': typeof AuthRouteWithChildren
   '/_app/depositar': typeof AppDepositarRoute
+  '/_app/favorecidos': typeof AppFavorecidosRoute
   '/_app/inicio': typeof AppInicioRoute
   '/_app/sacar': typeof AppSacarRoute
   '/_app/transferir': typeof AppTransferirRoute
@@ -219,6 +228,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/depositar'
+    | '/favorecidos'
     | '/inicio'
     | '/sacar'
     | '/transferir'
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/depositar'
+    | '/favorecidos'
     | '/inicio'
     | '/sacar'
     | '/transferir'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/_app/depositar'
+    | '/_app/favorecidos'
     | '/_app/inicio'
     | '/_app/sacar'
     | '/_app/transferir'
@@ -319,6 +331,13 @@ declare module '@tanstack/react-router' {
       path: '/depositar'
       fullPath: '/depositar'
       preLoaderRoute: typeof AppDepositarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/favorecidos': {
+      id: '/_app/favorecidos'
+      path: '/favorecidos'
+      fullPath: '/favorecidos'
+      preLoaderRoute: typeof AppFavorecidosRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/inicio': {
@@ -452,6 +471,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppDepositarRoute: typeof AppDepositarRoute
+  AppFavorecidosRoute: typeof AppFavorecidosRoute
   AppInicioRoute: typeof AppInicioRoute
   AppSacarRoute: typeof AppSacarRoute
   AppTransferirRoute: typeof AppTransferirRoute
@@ -472,6 +492,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppDepositarRoute: AppDepositarRoute,
+  AppFavorecidosRoute: AppFavorecidosRoute,
   AppInicioRoute: AppInicioRoute,
   AppSacarRoute: AppSacarRoute,
   AppTransferirRoute: AppTransferirRoute,
