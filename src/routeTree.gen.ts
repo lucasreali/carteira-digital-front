@@ -22,10 +22,15 @@ import { Route as AppCarteirasIndexRouteImport } from './routes/_app/carteiras/i
 import { Route as AppCarteirasNovaRouteImport } from './routes/_app/carteiras/nova'
 import { Route as AppMetodosPagamentoIndexRouteImport } from './routes/_app/metodos-pagamento/index'
 import { Route as AppMetodosPagamentoNovoRouteImport } from './routes/_app/metodos-pagamento/novo'
+import { Route as AppPixIndexRouteImport } from './routes/_app/pix/index'
+import { Route as AppPixChavesRouteImport } from './routes/_app/pix/chaves'
+import { Route as AppPixCobrarRouteImport } from './routes/_app/pix/cobrar'
+import { Route as AppPixPagarRouteImport } from './routes/_app/pix/pagar'
 import { Route as AppTransacoesIndexRouteImport } from './routes/_app/transacoes/index'
 import { Route as AppTransacoesTransactionIdRouteImport } from './routes/_app/transacoes/$transactionId'
 import { Route as AppCarteirasWalletIdIndexRouteImport } from './routes/_app/carteiras/$walletId/index'
 import { Route as AppCarteirasWalletIdExtratoRouteImport } from './routes/_app/carteiras/$walletId/extrato'
+import { Route as AppPixCobrancasChargeIdRouteImport } from './routes/_app/pix/cobrancas/$chargeId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -91,6 +96,26 @@ const AppMetodosPagamentoNovoRoute = AppMetodosPagamentoNovoRouteImport.update({
   path: '/metodos-pagamento/novo',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPixIndexRoute = AppPixIndexRouteImport.update({
+  id: '/pix/',
+  path: '/pix/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPixChavesRoute = AppPixChavesRouteImport.update({
+  id: '/pix/chaves',
+  path: '/pix/chaves',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPixCobrarRoute = AppPixCobrarRouteImport.update({
+  id: '/pix/cobrar',
+  path: '/pix/cobrar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPixPagarRoute = AppPixPagarRouteImport.update({
+  id: '/pix/pagar',
+  path: '/pix/pagar',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTransacoesIndexRoute = AppTransacoesIndexRouteImport.update({
   id: '/transacoes/',
   path: '/transacoes/',
@@ -114,6 +139,11 @@ const AppCarteirasWalletIdExtratoRoute =
     path: '/carteiras/$walletId/extrato',
     getParentRoute: () => AppRoute,
   } as any)
+const AppPixCobrancasChargeIdRoute = AppPixCobrancasChargeIdRouteImport.update({
+  id: '/pix/cobrancas/$chargeId',
+  path: '/pix/cobrancas/$chargeId',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -125,11 +155,16 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof AuthEntrarRoute
   '/carteiras/nova': typeof AppCarteirasNovaRoute
   '/metodos-pagamento/novo': typeof AppMetodosPagamentoNovoRoute
+  '/pix/chaves': typeof AppPixChavesRoute
+  '/pix/cobrar': typeof AppPixCobrarRoute
+  '/pix/pagar': typeof AppPixPagarRoute
   '/transacoes/$transactionId': typeof AppTransacoesTransactionIdRoute
   '/carteiras/': typeof AppCarteirasIndexRoute
   '/metodos-pagamento/': typeof AppMetodosPagamentoIndexRoute
+  '/pix/': typeof AppPixIndexRoute
   '/transacoes/': typeof AppTransacoesIndexRoute
   '/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
+  '/pix/cobrancas/$chargeId': typeof AppPixCobrancasChargeIdRoute
   '/carteiras/$walletId/': typeof AppCarteirasWalletIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -142,11 +177,16 @@ export interface FileRoutesByTo {
   '/entrar': typeof AuthEntrarRoute
   '/carteiras/nova': typeof AppCarteirasNovaRoute
   '/metodos-pagamento/novo': typeof AppMetodosPagamentoNovoRoute
+  '/pix/chaves': typeof AppPixChavesRoute
+  '/pix/cobrar': typeof AppPixCobrarRoute
+  '/pix/pagar': typeof AppPixPagarRoute
   '/transacoes/$transactionId': typeof AppTransacoesTransactionIdRoute
   '/carteiras': typeof AppCarteirasIndexRoute
   '/metodos-pagamento': typeof AppMetodosPagamentoIndexRoute
+  '/pix': typeof AppPixIndexRoute
   '/transacoes': typeof AppTransacoesIndexRoute
   '/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
+  '/pix/cobrancas/$chargeId': typeof AppPixCobrancasChargeIdRoute
   '/carteiras/$walletId': typeof AppCarteirasWalletIdIndexRoute
 }
 export interface FileRoutesById {
@@ -162,11 +202,16 @@ export interface FileRoutesById {
   '/_auth/entrar': typeof AuthEntrarRoute
   '/_app/carteiras/nova': typeof AppCarteirasNovaRoute
   '/_app/metodos-pagamento/novo': typeof AppMetodosPagamentoNovoRoute
+  '/_app/pix/chaves': typeof AppPixChavesRoute
+  '/_app/pix/cobrar': typeof AppPixCobrarRoute
+  '/_app/pix/pagar': typeof AppPixPagarRoute
   '/_app/transacoes/$transactionId': typeof AppTransacoesTransactionIdRoute
   '/_app/carteiras/': typeof AppCarteirasIndexRoute
   '/_app/metodos-pagamento/': typeof AppMetodosPagamentoIndexRoute
+  '/_app/pix/': typeof AppPixIndexRoute
   '/_app/transacoes/': typeof AppTransacoesIndexRoute
   '/_app/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
+  '/_app/pix/cobrancas/$chargeId': typeof AppPixCobrancasChargeIdRoute
   '/_app/carteiras/$walletId/': typeof AppCarteirasWalletIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -181,11 +226,16 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/carteiras/nova'
     | '/metodos-pagamento/novo'
+    | '/pix/chaves'
+    | '/pix/cobrar'
+    | '/pix/pagar'
     | '/transacoes/$transactionId'
     | '/carteiras/'
     | '/metodos-pagamento/'
+    | '/pix/'
     | '/transacoes/'
     | '/carteiras/$walletId/extrato'
+    | '/pix/cobrancas/$chargeId'
     | '/carteiras/$walletId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -198,11 +248,16 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/carteiras/nova'
     | '/metodos-pagamento/novo'
+    | '/pix/chaves'
+    | '/pix/cobrar'
+    | '/pix/pagar'
     | '/transacoes/$transactionId'
     | '/carteiras'
     | '/metodos-pagamento'
+    | '/pix'
     | '/transacoes'
     | '/carteiras/$walletId/extrato'
+    | '/pix/cobrancas/$chargeId'
     | '/carteiras/$walletId'
   id:
     | '__root__'
@@ -217,11 +272,16 @@ export interface FileRouteTypes {
     | '/_auth/entrar'
     | '/_app/carteiras/nova'
     | '/_app/metodos-pagamento/novo'
+    | '/_app/pix/chaves'
+    | '/_app/pix/cobrar'
+    | '/_app/pix/pagar'
     | '/_app/transacoes/$transactionId'
     | '/_app/carteiras/'
     | '/_app/metodos-pagamento/'
+    | '/_app/pix/'
     | '/_app/transacoes/'
     | '/_app/carteiras/$walletId/extrato'
+    | '/_app/pix/cobrancas/$chargeId'
     | '/_app/carteiras/$walletId/'
   fileRoutesById: FileRoutesById
 }
@@ -324,6 +384,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMetodosPagamentoNovoRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/pix/': {
+      id: '/_app/pix/'
+      path: '/pix'
+      fullPath: '/pix/'
+      preLoaderRoute: typeof AppPixIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/pix/chaves': {
+      id: '/_app/pix/chaves'
+      path: '/pix/chaves'
+      fullPath: '/pix/chaves'
+      preLoaderRoute: typeof AppPixChavesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/pix/cobrar': {
+      id: '/_app/pix/cobrar'
+      path: '/pix/cobrar'
+      fullPath: '/pix/cobrar'
+      preLoaderRoute: typeof AppPixCobrarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/pix/pagar': {
+      id: '/_app/pix/pagar'
+      path: '/pix/pagar'
+      fullPath: '/pix/pagar'
+      preLoaderRoute: typeof AppPixPagarRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/transacoes/': {
       id: '/_app/transacoes/'
       path: '/transacoes'
@@ -352,6 +440,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCarteirasWalletIdExtratoRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/pix/cobrancas/$chargeId': {
+      id: '/_app/pix/cobrancas/$chargeId'
+      path: '/pix/cobrancas/$chargeId'
+      fullPath: '/pix/cobrancas/$chargeId'
+      preLoaderRoute: typeof AppPixCobrancasChargeIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -362,11 +457,16 @@ interface AppRouteChildren {
   AppTransferirRoute: typeof AppTransferirRoute
   AppCarteirasNovaRoute: typeof AppCarteirasNovaRoute
   AppMetodosPagamentoNovoRoute: typeof AppMetodosPagamentoNovoRoute
+  AppPixChavesRoute: typeof AppPixChavesRoute
+  AppPixCobrarRoute: typeof AppPixCobrarRoute
+  AppPixPagarRoute: typeof AppPixPagarRoute
   AppTransacoesTransactionIdRoute: typeof AppTransacoesTransactionIdRoute
   AppCarteirasIndexRoute: typeof AppCarteirasIndexRoute
   AppMetodosPagamentoIndexRoute: typeof AppMetodosPagamentoIndexRoute
+  AppPixIndexRoute: typeof AppPixIndexRoute
   AppTransacoesIndexRoute: typeof AppTransacoesIndexRoute
   AppCarteirasWalletIdExtratoRoute: typeof AppCarteirasWalletIdExtratoRoute
+  AppPixCobrancasChargeIdRoute: typeof AppPixCobrancasChargeIdRoute
   AppCarteirasWalletIdIndexRoute: typeof AppCarteirasWalletIdIndexRoute
 }
 
@@ -377,11 +477,16 @@ const AppRouteChildren: AppRouteChildren = {
   AppTransferirRoute: AppTransferirRoute,
   AppCarteirasNovaRoute: AppCarteirasNovaRoute,
   AppMetodosPagamentoNovoRoute: AppMetodosPagamentoNovoRoute,
+  AppPixChavesRoute: AppPixChavesRoute,
+  AppPixCobrarRoute: AppPixCobrarRoute,
+  AppPixPagarRoute: AppPixPagarRoute,
   AppTransacoesTransactionIdRoute: AppTransacoesTransactionIdRoute,
   AppCarteirasIndexRoute: AppCarteirasIndexRoute,
   AppMetodosPagamentoIndexRoute: AppMetodosPagamentoIndexRoute,
+  AppPixIndexRoute: AppPixIndexRoute,
   AppTransacoesIndexRoute: AppTransacoesIndexRoute,
   AppCarteirasWalletIdExtratoRoute: AppCarteirasWalletIdExtratoRoute,
+  AppPixCobrancasChargeIdRoute: AppPixCobrancasChargeIdRoute,
   AppCarteirasWalletIdIndexRoute: AppCarteirasWalletIdIndexRoute,
 }
 
