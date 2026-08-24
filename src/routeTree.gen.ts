@@ -24,6 +24,8 @@ import { Route as AppCarteirasIndexRouteImport } from './routes/_app/carteiras/i
 import { Route as AppCarteirasNovaRouteImport } from './routes/_app/carteiras/nova'
 import { Route as AppMetodosPagamentoIndexRouteImport } from './routes/_app/metodos-pagamento/index'
 import { Route as AppMetodosPagamentoNovoRouteImport } from './routes/_app/metodos-pagamento/novo'
+import { Route as AppPerfilIndexRouteImport } from './routes/_app/perfil/index'
+import { Route as AppPerfilKycRouteImport } from './routes/_app/perfil/kyc'
 import { Route as AppPixIndexRouteImport } from './routes/_app/pix/index'
 import { Route as AppPixChavesRouteImport } from './routes/_app/pix/chaves'
 import { Route as AppPixCobrarRouteImport } from './routes/_app/pix/cobrar'
@@ -108,6 +110,16 @@ const AppMetodosPagamentoNovoRoute = AppMetodosPagamentoNovoRouteImport.update({
   path: '/metodos-pagamento/novo',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPerfilIndexRoute = AppPerfilIndexRouteImport.update({
+  id: '/perfil/',
+  path: '/perfil/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPerfilKycRoute = AppPerfilKycRouteImport.update({
+  id: '/perfil/kyc',
+  path: '/perfil/kyc',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPixIndexRoute = AppPixIndexRouteImport.update({
   id: '/pix/',
   path: '/pix/',
@@ -169,12 +181,14 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof AuthEntrarRoute
   '/carteiras/nova': typeof AppCarteirasNovaRoute
   '/metodos-pagamento/novo': typeof AppMetodosPagamentoNovoRoute
+  '/perfil/kyc': typeof AppPerfilKycRoute
   '/pix/chaves': typeof AppPixChavesRoute
   '/pix/cobrar': typeof AppPixCobrarRoute
   '/pix/pagar': typeof AppPixPagarRoute
   '/transacoes/$transactionId': typeof AppTransacoesTransactionIdRoute
   '/carteiras/': typeof AppCarteirasIndexRoute
   '/metodos-pagamento/': typeof AppMetodosPagamentoIndexRoute
+  '/perfil/': typeof AppPerfilIndexRoute
   '/pix/': typeof AppPixIndexRoute
   '/transacoes/': typeof AppTransacoesIndexRoute
   '/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
@@ -193,12 +207,14 @@ export interface FileRoutesByTo {
   '/entrar': typeof AuthEntrarRoute
   '/carteiras/nova': typeof AppCarteirasNovaRoute
   '/metodos-pagamento/novo': typeof AppMetodosPagamentoNovoRoute
+  '/perfil/kyc': typeof AppPerfilKycRoute
   '/pix/chaves': typeof AppPixChavesRoute
   '/pix/cobrar': typeof AppPixCobrarRoute
   '/pix/pagar': typeof AppPixPagarRoute
   '/transacoes/$transactionId': typeof AppTransacoesTransactionIdRoute
   '/carteiras': typeof AppCarteirasIndexRoute
   '/metodos-pagamento': typeof AppMetodosPagamentoIndexRoute
+  '/perfil': typeof AppPerfilIndexRoute
   '/pix': typeof AppPixIndexRoute
   '/transacoes': typeof AppTransacoesIndexRoute
   '/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
@@ -220,12 +236,14 @@ export interface FileRoutesById {
   '/_auth/entrar': typeof AuthEntrarRoute
   '/_app/carteiras/nova': typeof AppCarteirasNovaRoute
   '/_app/metodos-pagamento/novo': typeof AppMetodosPagamentoNovoRoute
+  '/_app/perfil/kyc': typeof AppPerfilKycRoute
   '/_app/pix/chaves': typeof AppPixChavesRoute
   '/_app/pix/cobrar': typeof AppPixCobrarRoute
   '/_app/pix/pagar': typeof AppPixPagarRoute
   '/_app/transacoes/$transactionId': typeof AppTransacoesTransactionIdRoute
   '/_app/carteiras/': typeof AppCarteirasIndexRoute
   '/_app/metodos-pagamento/': typeof AppMetodosPagamentoIndexRoute
+  '/_app/perfil/': typeof AppPerfilIndexRoute
   '/_app/pix/': typeof AppPixIndexRoute
   '/_app/transacoes/': typeof AppTransacoesIndexRoute
   '/_app/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
@@ -246,12 +264,14 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/carteiras/nova'
     | '/metodos-pagamento/novo'
+    | '/perfil/kyc'
     | '/pix/chaves'
     | '/pix/cobrar'
     | '/pix/pagar'
     | '/transacoes/$transactionId'
     | '/carteiras/'
     | '/metodos-pagamento/'
+    | '/perfil/'
     | '/pix/'
     | '/transacoes/'
     | '/carteiras/$walletId/extrato'
@@ -270,12 +290,14 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/carteiras/nova'
     | '/metodos-pagamento/novo'
+    | '/perfil/kyc'
     | '/pix/chaves'
     | '/pix/cobrar'
     | '/pix/pagar'
     | '/transacoes/$transactionId'
     | '/carteiras'
     | '/metodos-pagamento'
+    | '/perfil'
     | '/pix'
     | '/transacoes'
     | '/carteiras/$walletId/extrato'
@@ -296,12 +318,14 @@ export interface FileRouteTypes {
     | '/_auth/entrar'
     | '/_app/carteiras/nova'
     | '/_app/metodos-pagamento/novo'
+    | '/_app/perfil/kyc'
     | '/_app/pix/chaves'
     | '/_app/pix/cobrar'
     | '/_app/pix/pagar'
     | '/_app/transacoes/$transactionId'
     | '/_app/carteiras/'
     | '/_app/metodos-pagamento/'
+    | '/_app/perfil/'
     | '/_app/pix/'
     | '/_app/transacoes/'
     | '/_app/carteiras/$walletId/extrato'
@@ -422,6 +446,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMetodosPagamentoNovoRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/perfil/': {
+      id: '/_app/perfil/'
+      path: '/perfil'
+      fullPath: '/perfil/'
+      preLoaderRoute: typeof AppPerfilIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/perfil/kyc': {
+      id: '/_app/perfil/kyc'
+      path: '/perfil/kyc'
+      fullPath: '/perfil/kyc'
+      preLoaderRoute: typeof AppPerfilKycRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/pix/': {
       id: '/_app/pix/'
       path: '/pix'
@@ -497,12 +535,14 @@ interface AppRouteChildren {
   AppWebhooksRoute: typeof AppWebhooksRoute
   AppCarteirasNovaRoute: typeof AppCarteirasNovaRoute
   AppMetodosPagamentoNovoRoute: typeof AppMetodosPagamentoNovoRoute
+  AppPerfilKycRoute: typeof AppPerfilKycRoute
   AppPixChavesRoute: typeof AppPixChavesRoute
   AppPixCobrarRoute: typeof AppPixCobrarRoute
   AppPixPagarRoute: typeof AppPixPagarRoute
   AppTransacoesTransactionIdRoute: typeof AppTransacoesTransactionIdRoute
   AppCarteirasIndexRoute: typeof AppCarteirasIndexRoute
   AppMetodosPagamentoIndexRoute: typeof AppMetodosPagamentoIndexRoute
+  AppPerfilIndexRoute: typeof AppPerfilIndexRoute
   AppPixIndexRoute: typeof AppPixIndexRoute
   AppTransacoesIndexRoute: typeof AppTransacoesIndexRoute
   AppCarteirasWalletIdExtratoRoute: typeof AppCarteirasWalletIdExtratoRoute
@@ -519,12 +559,14 @@ const AppRouteChildren: AppRouteChildren = {
   AppWebhooksRoute: AppWebhooksRoute,
   AppCarteirasNovaRoute: AppCarteirasNovaRoute,
   AppMetodosPagamentoNovoRoute: AppMetodosPagamentoNovoRoute,
+  AppPerfilKycRoute: AppPerfilKycRoute,
   AppPixChavesRoute: AppPixChavesRoute,
   AppPixCobrarRoute: AppPixCobrarRoute,
   AppPixPagarRoute: AppPixPagarRoute,
   AppTransacoesTransactionIdRoute: AppTransacoesTransactionIdRoute,
   AppCarteirasIndexRoute: AppCarteirasIndexRoute,
   AppMetodosPagamentoIndexRoute: AppMetodosPagamentoIndexRoute,
+  AppPerfilIndexRoute: AppPerfilIndexRoute,
   AppPixIndexRoute: AppPixIndexRoute,
   AppTransacoesIndexRoute: AppTransacoesIndexRoute,
   AppCarteirasWalletIdExtratoRoute: AppCarteirasWalletIdExtratoRoute,
