@@ -1,12 +1,22 @@
 import { z } from "zod";
 
 import { Document } from "@/domain/document";
-import { Phone } from "@/domain/phone";
 import { Money } from "@/domain/money";
+import { Phone } from "@/domain/phone";
 import { optionalText } from "./common";
 
-export const pixKeyTypeSchema = z.enum(["cpf", "cnpj", "email", "phone", "random"]);
-export const pixKeyStatusSchema = z.enum(["active", "pending_portability", "inactive"]);
+export const pixKeyTypeSchema = z.enum([
+	"cpf",
+	"cnpj",
+	"email",
+	"phone",
+	"random",
+]);
+export const pixKeyStatusSchema = z.enum([
+	"active",
+	"pending_portability",
+	"inactive",
+]);
 
 export const pixKeySchema = z.object({
 	id: z.string(),
@@ -19,7 +29,12 @@ export const pixKeySchema = z.object({
 
 export type PixKey = z.infer<typeof pixKeySchema>;
 
-export const pixChargeStatusSchema = z.enum(["active", "paid", "expired", "canceled"]);
+export const pixChargeStatusSchema = z.enum([
+	"active",
+	"paid",
+	"expired",
+	"canceled",
+]);
 
 export const pixChargeSchema = z.object({
 	id: z.string(),
@@ -37,7 +52,10 @@ export const pixChargeSchema = z.object({
 
 export type PixCharge = z.infer<typeof pixChargeSchema>;
 
-function isValidKeyValue(type: z.infer<typeof pixKeyTypeSchema>, value: string) {
+function isValidKeyValue(
+	type: z.infer<typeof pixKeyTypeSchema>,
+	value: string,
+) {
 	if (type === "random") return true;
 	if (type === "email") return z.email().safeParse(value).success;
 	if (type === "phone") return Phone.isValid(value);
@@ -55,11 +73,19 @@ export const createPixKeyFormSchema = z
 	.superRefine((values, ctx) => {
 		if (values.type === "random") return;
 		if (!values.value) {
-			ctx.addIssue({ path: ["value"], code: "custom", message: "Informe o valor da chave" });
+			ctx.addIssue({
+				path: ["value"],
+				code: "custom",
+				message: "Informe o valor da chave",
+			});
 			return;
 		}
 		if (!isValidKeyValue(values.type, values.value)) {
-			ctx.addIssue({ path: ["value"], code: "custom", message: "Chave inválida para este tipo" });
+			ctx.addIssue({
+				path: ["value"],
+				code: "custom",
+				message: "Chave inválida para este tipo",
+			});
 		}
 	});
 
@@ -81,7 +107,11 @@ export const createPixChargeFormSchema = z
 	})
 	.superRefine((values, ctx) => {
 		if (values.amount && !Money.parse(values.amount)) {
-			ctx.addIssue({ path: ["amount"], code: "custom", message: "Valor inválido" });
+			ctx.addIssue({
+				path: ["amount"],
+				code: "custom",
+				message: "Valor inválido",
+			});
 		}
 	})
 	.transform((values) => ({
@@ -106,19 +136,35 @@ export const pixPaymentFormSchema = z
 	})
 	.superRefine((values, ctx) => {
 		if (values.amount && !Money.parse(values.amount)) {
-			ctx.addIssue({ path: ["amount"], code: "custom", message: "Valor inválido" });
+			ctx.addIssue({
+				path: ["amount"],
+				code: "custom",
+				message: "Valor inválido",
+			});
 		}
 		if (values.mode === "qr_code") {
 			if (!values.qr_code) {
-				ctx.addIssue({ path: ["qr_code"], code: "custom", message: "Cole o código copia-e-cola" });
+				ctx.addIssue({
+					path: ["qr_code"],
+					code: "custom",
+					message: "Cole o código copia-e-cola",
+				});
 			}
 			return;
 		}
 		if (!values.pix_key) {
-			ctx.addIssue({ path: ["pix_key"], code: "custom", message: "Informe a chave Pix" });
+			ctx.addIssue({
+				path: ["pix_key"],
+				code: "custom",
+				message: "Informe a chave Pix",
+			});
 		}
 		if (!values.amount) {
-			ctx.addIssue({ path: ["amount"], code: "custom", message: "Informe o valor" });
+			ctx.addIssue({
+				path: ["amount"],
+				code: "custom",
+				message: "Informe o valor",
+			});
 		}
 	})
 	.transform((values) => ({

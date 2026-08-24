@@ -30,7 +30,8 @@ export const pixEndpoints = {
 	createKey: (body: CreatePixKeyPayload) =>
 		request({ path: "/pix/keys", method: "POST", body, schema: pixKeySchema }),
 
-	removeKey: (pixKeyId: string) => request({ path: `/pix/keys/${pixKeyId}`, method: "DELETE" }),
+	removeKey: (pixKeyId: string) =>
+		request({ path: `/pix/keys/${pixKeyId}`, method: "DELETE" }),
 
 	createCharge: (body: CreatePixChargePayload) =>
 		request({

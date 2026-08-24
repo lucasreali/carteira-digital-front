@@ -1,9 +1,8 @@
 import type { MockTransaction } from "../db";
 import { commit, db, newId, nowIso } from "../db";
-import { credit, debit, block, settleBlocked } from "../ledger";
+import { block, credit, debit, settleBlocked } from "../ledger";
 import { route } from "../router";
 import {
-	SETTLEMENT_DELAY_MS,
 	findWallet,
 	idempotencyReplay,
 	insufficientFunds,
@@ -11,6 +10,7 @@ import {
 	pushTransaction,
 	rememberIdempotency,
 	requireUser,
+	SETTLEMENT_DELAY_MS,
 	toTransaction,
 	unauthorized,
 	walletsOf,
@@ -36,9 +36,12 @@ route("POST", "/wallets/:walletId/deposits", async (context) => {
 
 	const amount = Number(payload.amount ?? 0);
 	if (amount < 100) {
-		return fail(422, "amount_out_of_range", "Valor abaixo do mínimo permitido.", [
-			{ field: "amount", issue: "mínimo: 100 (R$ 1,00)" },
-		]);
+		return fail(
+			422,
+			"amount_out_of_range",
+			"Valor abaixo do mínimo permitido.",
+			[{ field: "amount", issue: "mínimo: 100 (R$ 1,00)" }],
+		);
 	}
 
 	const method = String(payload.method ?? "pix");
@@ -58,7 +61,11 @@ route("POST", "/wallets/:walletId/deposits", async (context) => {
 		metadata:
 			method === "pix"
 				? { method, qr_code: pixQrCodeFor(amount), expires_at: expiresAt }
-				: { method, payment_method_id: payload.payment_method_id ?? null, expires_at: expiresAt },
+				: {
+						method,
+						payment_method_id: payload.payment_method_id ?? null,
+						expires_at: expiresAt,
+					},
 		idempotency_key: key,
 		created_at: nowIso(),
 		completed_at: null,
@@ -96,10 +103,13 @@ route("POST", "/wallets/:walletId/withdrawals", async (context) => {
 
 	const amount = Number(payload.amount ?? 0);
 	const total = amount + WITHDRAWAL_FEE;
-	if (total > wallet.available_balance) return insufficientFunds(total, wallet.available_balance);
+	if (total > wallet.available_balance)
+		return insufficientFunds(total, wallet.available_balance);
 
 	const method = db().paymentMethods.find(
-		(candidate) => candidate.id === payload.payment_method_id && candidate.user_id === user.id,
+		(candidate) =>
+			candidate.id === payload.payment_method_id &&
+			candidate.user_id === user.id,
 	);
 	if (!method?.bank_account) return notFound();
 
@@ -158,31 +168,49 @@ route("POST", "/transfers", async (context) => {
 
 	const state = db();
 	const destination = payload.destination_wallet_id
-		? (state.wallets.find((wallet) => wallet.id === payload.destination_wallet_id) ?? null)
+		? (state.wallets.find(
+				(wallet) => wallet.id === payload.destination_wallet_id,
+			) ?? null)
 		: (() => {
 				const counterparty = state.users.find(
 					(candidate) =>
-						candidate.email === String(payload.destination_email ?? "").toLowerCase() ||
+						candidate.email ===
+							String(payload.destination_email ?? "").toLowerCase() ||
 						candidate.document === payload.destination_document,
 				);
 				if (!counterparty) return null;
-				return state.wallets.find(
-					(wallet) => wallet.user_id === counterparty.id && wallet.is_default,
-				) ?? null;
+				return (
+					state.wallets.find(
+						(wallet) => wallet.user_id === counterparty.id && wallet.is_default,
+					) ?? null
+				);
 			})();
 
 	if (!destination) {
-		return fail(404, "destination_not_found", "Nenhum destinatário encontrado para os dados informados.");
+		return fail(
+			404,
+			"destination_not_found",
+			"Nenhum destinatário encontrado para os dados informados.",
+		);
 	}
 	if (destination.id === source.id) {
-		return fail(400, "bad_request", "A carteira de destino precisa ser diferente da origem.");
+		return fail(
+			400,
+			"bad_request",
+			"A carteira de destino precisa ser diferente da origem.",
+		);
 	}
 
 	const amount = Number(payload.amount ?? 0);
-	if (amount > source.available_balance) return insufficientFunds(amount, source.available_balance);
+	if (amount > source.available_balance)
+		return insufficientFunds(amount, source.available_balance);
 
-	const counterparty = state.users.find((candidate) => candidate.id === destination.user_id);
-	const scheduled = payload.scheduled_for ? String(payload.scheduled_for) : null;
+	const counterparty = state.users.find(
+		(candidate) => candidate.id === destination.user_id,
+	);
+	const scheduled = payload.scheduled_for
+		? String(payload.scheduled_for)
+		: null;
 	const transaction = pushTransaction({
 		id: newId(),
 		user_id: user.id,
@@ -265,8 +293,12 @@ route("GET", "/transactions", (context) => {
 			const to = query.get("to");
 			return to ? transaction.created_at <= to : true;
 		})
-		.filter((transaction) => (minAmount ? transaction.amount >= Number(minAmount) : true))
-		.filter((transaction) => (maxAmount ? transaction.amount <= Number(maxAmount) : true))
+		.filter((transaction) =>
+			minAmount ? transaction.amount >= Number(minAmount) : true,
+		)
+		.filter((transaction) =>
+			maxAmount ? transaction.amount <= Number(maxAmount) : true,
+		)
 		.sort((left, right) => right.created_at.localeCompare(left.created_at))
 		.map(toTransaction);
 
@@ -286,7 +318,11 @@ route("GET", "/transactions/:transactionId", (context) => {
 		!ownedWalletIds.has(transaction.source_wallet_id ?? "") &&
 		!ownedWalletIds.has(transaction.destination_wallet_id ?? "")
 	) {
-		return fail(403, "forbidden", "Você não tem permissão para acessar esta transação.");
+		return fail(
+			403,
+			"forbidden",
+			"Você não tem permissão para acessar esta transação.",
+		);
 	}
 
 	return json(toTransaction(transaction));
@@ -312,17 +348,31 @@ route("POST", "/transactions/:transactionId/reversal", async (context) => {
 		(candidate) => candidate.id === context.params.transactionId,
 	);
 	if (!original) return notFound();
-	if (original.status !== "completed" || !REVERSIBLE_TYPES.includes(original.type)) {
-		return fail(409, "transaction_not_reversible", "Esta transação não pode ser estornada.", [
-			{ field: "status", issue: original.status },
-		]);
+	if (
+		original.status !== "completed" ||
+		!REVERSIBLE_TYPES.includes(original.type)
+	) {
+		return fail(
+			409,
+			"transaction_not_reversible",
+			"Esta transação não pode ser estornada.",
+			[{ field: "status", issue: original.status }],
+		);
 	}
 
 	const amount = Number(payload.amount ?? original.amount);
-	const creditWallet = state.wallets.find((wallet) => wallet.id === original.source_wallet_id);
-	const debitWallet = state.wallets.find((wallet) => wallet.id === original.destination_wallet_id);
+	const creditWallet = state.wallets.find(
+		(wallet) => wallet.id === original.source_wallet_id,
+	);
+	const debitWallet = state.wallets.find(
+		(wallet) => wallet.id === original.destination_wallet_id,
+	);
 	if (!creditWallet || !debitWallet) {
-		return fail(409, "transaction_not_reversible", "Esta transação não pode ser estornada.");
+		return fail(
+			409,
+			"transaction_not_reversible",
+			"Esta transação não pode ser estornada.",
+		);
 	}
 	if (amount > debitWallet.available_balance) {
 		return insufficientFunds(amount, debitWallet.available_balance);
@@ -340,7 +390,10 @@ route("POST", "/transactions/:transactionId/reversal", async (context) => {
 		source_wallet_id: debitWallet.id,
 		destination_wallet_id: creditWallet.id,
 		description: `Estorno da transação ${original.id.slice(0, 8)}`,
-		metadata: { original_transaction_id: original.id, reason: payload.reason ?? "customer_request" },
+		metadata: {
+			original_transaction_id: original.id,
+			reason: payload.reason ?? "customer_request",
+		},
 		idempotency_key: key,
 		created_at: nowIso(),
 		completed_at: nowIso(),

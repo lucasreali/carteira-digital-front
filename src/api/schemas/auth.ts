@@ -26,7 +26,10 @@ const passwordField = z
 	.min(10, "A senha precisa ter ao menos 10 caracteres")
 	.refine((value) => /[A-Za-z]/.test(value), "Inclua ao menos uma letra")
 	.refine((value) => /\d/.test(value), "Inclua ao menos um número")
-	.refine((value) => /[^A-Za-z0-9]/.test(value), "Inclua ao menos um caractere especial");
+	.refine(
+		(value) => /[^A-Za-z0-9]/.test(value),
+		"Inclua ao menos um caractere especial",
+	);
 
 const legalAgeInYears = 18;
 
@@ -53,7 +56,9 @@ export const registerFormSchema = z
 			.refine(isOldEnough, "É necessário ter ao menos 18 anos"),
 		password: passwordField,
 		password_confirmation: z.string().min(1, "Confirme a senha"),
-		accepted_terms: z.literal(true, { error: "Aceite os termos para continuar" }),
+		accepted_terms: z
+			.boolean()
+			.refine((accepted) => accepted, "Aceite os termos para continuar"),
 	})
 	.refine((values) => values.password === values.password_confirmation, {
 		path: ["password_confirmation"],

@@ -24,11 +24,16 @@ export const walletEndpoints = {
 	create: (body: { alias: string; currency: string; is_default: boolean }) =>
 		request({ path: "/wallets", method: "POST", body, schema: walletSchema }),
 
-	get: (walletId: string) => request({ path: `/wallets/${walletId}`, schema: walletSchema }),
+	get: (walletId: string) =>
+		request({ path: `/wallets/${walletId}`, schema: walletSchema }),
 
 	update: (
 		walletId: string,
-		body: { alias?: string; is_default?: boolean; status?: "active" | "frozen" },
+		body: {
+			alias?: string;
+			is_default?: boolean;
+			status?: "active" | "frozen";
+		},
 		version?: number,
 	) =>
 		request({
@@ -39,11 +44,16 @@ export const walletEndpoints = {
 			ifMatch: version,
 		}),
 
-	close: (walletId: string) => request({ path: `/wallets/${walletId}`, method: "DELETE" }),
+	close: (walletId: string) =>
+		request({ path: `/wallets/${walletId}`, method: "DELETE" }),
 
 	balance: (walletId: string) =>
 		request({ path: `/wallets/${walletId}/balance`, schema: balanceSchema }),
 
 	statement: (walletId: string, query: StatementFilters = {}) =>
-		request({ path: `/wallets/${walletId}/statement`, query, schema: statementSchema }),
+		request({
+			path: `/wallets/${walletId}/statement`,
+			query,
+			schema: statementSchema,
+		}),
 };

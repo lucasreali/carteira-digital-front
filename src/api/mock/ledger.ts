@@ -10,17 +10,43 @@ type Movement = {
 	description: string;
 };
 
-export function credit({ wallet, amount, transactionId, type, description }: Movement) {
+export function credit({
+	wallet,
+	amount,
+	transactionId,
+	type,
+	description,
+}: Movement) {
 	wallet.available_balance += amount;
 	touchWallet(wallet);
-	recordEntry({ wallet, transactionId, type, direction: "credit", amount, description });
+	recordEntry({
+		wallet,
+		transactionId,
+		type,
+		direction: "credit",
+		amount,
+		description,
+	});
 	commit();
 }
 
-export function debit({ wallet, amount, transactionId, type, description }: Movement) {
+export function debit({
+	wallet,
+	amount,
+	transactionId,
+	type,
+	description,
+}: Movement) {
 	wallet.available_balance -= amount;
 	touchWallet(wallet);
-	recordEntry({ wallet, transactionId, type, direction: "debit", amount, description });
+	recordEntry({
+		wallet,
+		transactionId,
+		type,
+		direction: "debit",
+		amount,
+		description,
+	});
 	commit();
 }
 
@@ -40,6 +66,13 @@ export function settleBlocked({
 }: Movement) {
 	wallet.blocked_balance -= amount;
 	touchWallet(wallet);
-	recordEntry({ wallet, transactionId, type, direction: "debit", amount, description });
+	recordEntry({
+		wallet,
+		transactionId,
+		type,
+		direction: "debit",
+		amount,
+		description,
+	});
 	commit();
 }

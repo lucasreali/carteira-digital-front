@@ -20,9 +20,13 @@ export class Phone {
 	static maskInput(raw: string) {
 		const digits = digitsOf(raw).replace(/^55/, "").slice(0, 11);
 		if (digits.length <= 10) {
-			return digits.replace(/^(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+			return digits
+				.replace(/^(\d{2})(\d)/, "($1) $2")
+				.replace(/(\d{4})(\d{1,4})$/, "$1-$2");
 		}
-		return digits.replace(/^(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+		return digits
+			.replace(/^(\d{2})(\d)/, "($1) $2")
+			.replace(/(\d{5})(\d{1,4})$/, "$1-$2");
 	}
 
 	toE164() {

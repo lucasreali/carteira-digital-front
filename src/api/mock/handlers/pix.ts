@@ -46,7 +46,11 @@ route("POST", "/pix/keys", async (context) => {
 	const state = db();
 	const owned = state.pixKeys.filter((key) => key.user_id === user.id);
 	if (owned.length >= MAX_KEYS_PER_USER) {
-		return fail(422, "pix_key_limit_reached", "Limite de 5 chaves por pessoa física atingido.");
+		return fail(
+			422,
+			"pix_key_limit_reached",
+			"Limite de 5 chaves por pessoa física atingido.",
+		);
 	}
 
 	const type = payload.type as MockPixKey["type"];
@@ -165,7 +169,8 @@ route("GET", "/pix/charges/:chargeId", (context) => {
 	if (!user) return unauthorized();
 
 	const charge = db().pixCharges.find(
-		(candidate) => candidate.id === context.params.chargeId && candidate.user_id === user.id,
+		(candidate) =>
+			candidate.id === context.params.chargeId && candidate.user_id === user.id,
 	);
 	return charge ? json(withoutOwner(charge)) : notFound();
 });
@@ -175,13 +180,17 @@ route("DELETE", "/pix/charges/:chargeId", (context) => {
 	if (!user) return unauthorized();
 
 	const charge = db().pixCharges.find(
-		(candidate) => candidate.id === context.params.chargeId && candidate.user_id === user.id,
+		(candidate) =>
+			candidate.id === context.params.chargeId && candidate.user_id === user.id,
 	);
 	if (!charge) return notFound();
 	if (charge.status !== "active") {
-		return fail(409, "charge_not_cancelable", "Cobrança já foi paga ou expirou.", [
-			{ field: "status", issue: charge.status },
-		]);
+		return fail(
+			409,
+			"charge_not_cancelable",
+			"Cobrança já foi paga ou expirou.",
+			[{ field: "status", issue: charge.status }],
+		);
 	}
 
 	charge.status = "canceled";
@@ -198,7 +207,11 @@ route("POST", "/pix/payments", async (context) => {
 	if (replay) return replay;
 
 	if (payload.pix_key && payload.qr_code) {
-		return fail(400, "bad_request", "Informe a chave Pix ou o código copia-e-cola, não ambos.");
+		return fail(
+			400,
+			"bad_request",
+			"Informe a chave Pix ou o código copia-e-cola, não ambos.",
+		);
 	}
 
 	const source = findWallet(user, String(payload.source_wallet_id ?? ""));
@@ -209,23 +222,37 @@ route("POST", "/pix/payments", async (context) => {
 		? state.pixKeys.find((candidate) => candidate.value === payload.pix_key)
 		: state.pixKeys.find((candidate) => candidate.user_id !== user.id);
 
-	if (!pixKey) return fail(404, "pix_key_not_found", "Chave Pix não encontrada no DICT.");
+	if (!pixKey)
+		return fail(404, "pix_key_not_found", "Chave Pix não encontrada no DICT.");
 
-	const destination = state.wallets.find((wallet) => wallet.id === pixKey.wallet_id);
-	if (!destination) return fail(404, "pix_key_not_found", "Chave Pix não encontrada no DICT.");
+	const destination = state.wallets.find(
+		(wallet) => wallet.id === pixKey.wallet_id,
+	);
+	if (!destination)
+		return fail(404, "pix_key_not_found", "Chave Pix não encontrada no DICT.");
 	if (destination.id === source.id) {
-		return fail(400, "bad_request", "A chave Pix informada pertence à carteira de origem.");
+		return fail(
+			400,
+			"bad_request",
+			"A chave Pix informada pertence à carteira de origem.",
+		);
 	}
 
 	const amount = Number(payload.amount ?? 0);
 	if (amount <= 0) {
-		return fail(422, "amount_out_of_range", "Informe um valor válido para o pagamento.", [
-			{ field: "amount", issue: "mínimo: 1" },
-		]);
+		return fail(
+			422,
+			"amount_out_of_range",
+			"Informe um valor válido para o pagamento.",
+			[{ field: "amount", issue: "mínimo: 1" }],
+		);
 	}
-	if (amount > source.available_balance) return insufficientFunds(amount, source.available_balance);
+	if (amount > source.available_balance)
+		return insufficientFunds(amount, source.available_balance);
 
-	const counterparty = state.users.find((candidate) => candidate.id === destination.user_id);
+	const counterparty = state.users.find(
+		(candidate) => candidate.id === destination.user_id,
+	);
 	const endToEndId = `E${newId().replace(/-/g, "").slice(0, 30)}`;
 
 	const outgoing = pushTransaction({

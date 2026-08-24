@@ -1,7 +1,7 @@
 import type { MockTransaction, MockUser, MockWallet } from "./db";
 import { commit, db } from "./db";
-import { authenticate, fail, json } from "./support";
 import type { MockContext } from "./router";
+import { authenticate, fail, json } from "./support";
 
 export const SETTLEMENT_DELAY_MS = 6000;
 export const CHARGE_PAYMENT_DELAY_MS = 12000;
@@ -19,7 +19,9 @@ export function notFound() {
 }
 
 export function walletsOf(user: MockUser) {
-	return db().wallets.filter((wallet) => wallet.user_id === user.id && wallet.status !== "closed");
+	return db().wallets.filter(
+		(wallet) => wallet.user_id === user.id && wallet.status !== "closed",
+	);
 }
 
 export function findWallet(user: MockUser, walletId: string) {
@@ -41,9 +43,17 @@ export function pushTransaction(transaction: MockTransaction) {
 }
 
 export function insufficientFunds(requested: number, available: number) {
-	return fail(422, "insufficient_funds", "Saldo insuficiente para concluir a operação.", [
-		{ field: "amount", issue: `solicitado: ${requested}, disponível: ${available}` },
-	]);
+	return fail(
+		422,
+		"insufficient_funds",
+		"Saldo insuficiente para concluir a operação.",
+		[
+			{
+				field: "amount",
+				issue: `solicitado: ${requested}, disponível: ${available}`,
+			},
+		],
+	);
 }
 
 export function idempotencyReplay(request: Request, payload: unknown) {

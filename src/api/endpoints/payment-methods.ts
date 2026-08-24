@@ -17,13 +17,25 @@ export type CreatePaymentMethodPayload = {
 
 export const paymentMethodEndpoints = {
 	list: (query: { type?: string; limit?: number; cursor?: string } = {}) =>
-		request({ path: "/payment-methods", query, schema: pageOf(paymentMethodSchema) }),
+		request({
+			path: "/payment-methods",
+			query,
+			schema: pageOf(paymentMethodSchema),
+		}),
 
 	create: (body: CreatePaymentMethodPayload) =>
-		request({ path: "/payment-methods", method: "POST", body, schema: paymentMethodSchema }),
+		request({
+			path: "/payment-methods",
+			method: "POST",
+			body,
+			schema: paymentMethodSchema,
+		}),
 
 	get: (paymentMethodId: string) =>
-		request({ path: `/payment-methods/${paymentMethodId}`, schema: paymentMethodSchema }),
+		request({
+			path: `/payment-methods/${paymentMethodId}`,
+			schema: paymentMethodSchema,
+		}),
 
 	update: (
 		paymentMethodId: string,

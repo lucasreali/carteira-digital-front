@@ -5,9 +5,16 @@ export type MockContext = {
 	body: () => Promise<Record<string, unknown>>;
 };
 
-export type MockHandler = (context: MockContext) => Promise<Response> | Response;
+export type MockHandler = (
+	context: MockContext,
+) => Promise<Response> | Response;
 
-type MockRoute = { method: string; pattern: RegExp; keys: Array<string>; handler: MockHandler };
+type MockRoute = {
+	method: string;
+	pattern: RegExp;
+	keys: Array<string>;
+	handler: MockHandler;
+};
 
 const routes: Array<MockRoute> = [];
 
@@ -28,7 +35,10 @@ export function matchRoute(method: string, pathname: string) {
 		const match = candidate.pattern.exec(pathname);
 		if (!match) continue;
 		const params = Object.fromEntries(
-			candidate.keys.map((key, index) => [key, decodeURIComponent(match[index + 1])]),
+			candidate.keys.map((key, index) => [
+				key,
+				decodeURIComponent(match[index + 1]),
+			]),
 		);
 		return { handler: candidate.handler, params };
 	}

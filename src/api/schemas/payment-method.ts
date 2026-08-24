@@ -71,7 +71,7 @@ export const cardFormSchema = z.object({
 		.string()
 		.trim()
 		.min(8, "Informe o token gerado pelo SDK do adquirente")
-		.regex(/^tok_/, "O token do adquirente começa com \"tok_\""),
+		.regex(/^tok_/, 'O token do adquirente começa com "tok_"'),
 });
 
 export type CardForm = z.infer<typeof cardFormSchema>;

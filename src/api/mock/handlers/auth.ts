@@ -2,7 +2,14 @@ import type { MockUser } from "../db";
 import { commit, db, newId, nowIso } from "../db";
 import { route } from "../router";
 import { unauthorized } from "../shared";
-import { authenticate, fail, issueSession, json, noContent, toUser } from "../support";
+import {
+	authenticate,
+	fail,
+	issueSession,
+	json,
+	noContent,
+	toUser,
+} from "../support";
 
 route("POST", "/auth/register", async ({ body }) => {
 	const payload = await body();
@@ -11,7 +18,11 @@ route("POST", "/auth/register", async ({ body }) => {
 	const state = db();
 
 	if (state.users.some((user) => user.email === email)) {
-		return fail(409, "resource_conflict", "Já existe um usuário com este e-mail.");
+		return fail(
+			409,
+			"resource_conflict",
+			"Já existe um usuário com este e-mail.",
+		);
 	}
 	if (state.users.some((user) => user.document === document)) {
 		return fail(409, "resource_conflict", "Já existe um usuário com este CPF.");
@@ -69,7 +80,11 @@ route("POST", "/auth/login", async ({ body }) => {
 		return fail(401, "invalid_credentials", "E-mail ou senha incorretos.");
 	}
 	if (user.status === "blocked") {
-		return fail(403, "account_blocked", "Conta suspensa por análise de risco. Contate o suporte.");
+		return fail(
+			403,
+			"account_blocked",
+			"Conta suspensa por análise de risco. Contate o suporte.",
+		);
 	}
 
 	return json({ ...issueSession(user), user: toUser(user) });
@@ -79,7 +94,9 @@ route("POST", "/auth/refresh", async ({ body }) => {
 	const payload = await body();
 	const state = db();
 	const token = String(payload.refresh_token ?? "");
-	const user = state.users.find((candidate) => candidate.id === state.refreshTokens[token]);
+	const user = state.users.find(
+		(candidate) => candidate.id === state.refreshTokens[token],
+	);
 
 	if (!user) {
 		return fail(
@@ -100,7 +117,8 @@ route("POST", "/auth/logout", async ({ request, body }) => {
 	const payload = await body();
 	const state = db();
 	for (const [token, userId] of Object.entries(state.refreshTokens)) {
-		if (userId === user.id && payload.all_devices !== false) delete state.refreshTokens[token];
+		if (userId === user.id && payload.all_devices !== false)
+			delete state.refreshTokens[token];
 	}
 	commit();
 

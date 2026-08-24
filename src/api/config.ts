@@ -6,4 +6,5 @@ function readEnv(key: string) {
 
 export const apiBaseUrl = readEnv("VITE_API_URL") ?? fallbackBaseUrl;
 
-export const mockApiEnabled = (readEnv("VITE_ENABLE_MOCK_API") ?? "true") !== "false";
+export const mockApiEnabled =
+	(readEnv("VITE_ENABLE_MOCK_API") ?? "true") !== "false";

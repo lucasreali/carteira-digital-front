@@ -43,8 +43,21 @@ export type MockWallet = {
 export type MockTransaction = {
 	id: string;
 	user_id: string;
-	type: "deposit" | "withdrawal" | "transfer" | "pix_in" | "pix_out" | "reversal" | "fee";
-	status: "pending" | "processing" | "completed" | "failed" | "reversed" | "canceled";
+	type:
+		| "deposit"
+		| "withdrawal"
+		| "transfer"
+		| "pix_in"
+		| "pix_out"
+		| "reversal"
+		| "fee";
+	status:
+		| "pending"
+		| "processing"
+		| "completed"
+		| "failed"
+		| "reversed"
+		| "canceled";
 	amount: number;
 	fee: number;
 	net_amount: number;
@@ -153,7 +166,10 @@ export type MockState = {
 	beneficiaries: Array<MockBeneficiary>;
 	webhooks: Array<MockWebhook>;
 	refreshTokens: Record<string, string>;
-	idempotency: Record<string, { body: string; response: string; status: number }>;
+	idempotency: Record<
+		string,
+		{ body: string; response: string; status: number }
+	>;
 };
 
 export function newId() {
@@ -269,7 +285,10 @@ function seed(): MockState {
 			source_wallet_id: brunoWallet,
 			destination_wallet_id: anaMainWallet,
 			description: "Aluguel agosto",
-			metadata: { counterparty_name: "Bruno Lima", counterparty_document_masked: "***.456.789-**" },
+			metadata: {
+				counterparty_name: "Bruno Lima",
+				counterparty_document_masked: "***.456.789-**",
+			},
 			idempotency_key: "trf_seed_001",
 			created_at: daysAgoIso(1),
 			completed_at: daysAgoIso(1),
@@ -303,7 +322,10 @@ function seed(): MockState {
 			source_wallet_id: null,
 			destination_wallet_id: anaMainWallet,
 			description: "Pedido #1042",
-			metadata: { counterparty_name: "Bruno Lima", counterparty_bank: "Nubank" },
+			metadata: {
+				counterparty_name: "Bruno Lima",
+				counterparty_bank: "Nubank",
+			},
 			idempotency_key: null,
 			created_at: daysAgoIso(4),
 			completed_at: daysAgoIso(4),
@@ -356,7 +378,10 @@ function seed(): MockState {
 				submitted_at: daysAgoIso(119),
 				reviewed_at: daysAgoIso(119),
 				rejection_reason: null,
-				limits: { daily_transfer_limit: 1000000, nightly_transfer_limit: 100000 },
+				limits: {
+					daily_transfer_limit: 1000000,
+					nightly_transfer_limit: 100000,
+				},
 			},
 			{
 				user_id: brunoId,
@@ -365,7 +390,10 @@ function seed(): MockState {
 				submitted_at: daysAgoIso(199),
 				reviewed_at: daysAgoIso(199),
 				rejection_reason: null,
-				limits: { daily_transfer_limit: 1000000, nightly_transfer_limit: 100000 },
+				limits: {
+					daily_transfer_limit: 1000000,
+					nightly_transfer_limit: 100000,
+				},
 			},
 		],
 		wallets,
@@ -454,7 +482,11 @@ function seed(): MockState {
 				id: "wh_0f1e2d3c-4b5a-4697-8887-776655443322",
 				user_id: anaId,
 				url: "https://meuapp.example.com/hooks/wallet",
-				events: ["transaction.completed", "transaction.failed", "deposit.confirmed"],
+				events: [
+					"transaction.completed",
+					"transaction.failed",
+					"deposit.confirmed",
+				],
 				status: "active",
 				secret: "whsec_3a7f9b2c1d4e6f8a0b2c4d6e8f0a2b4c9f2c",
 				created_at: daysAgoIso(15),

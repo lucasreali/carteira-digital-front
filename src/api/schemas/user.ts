@@ -3,8 +3,18 @@ import { z } from "zod";
 import { Document } from "@/domain/document";
 import { Phone } from "@/domain/phone";
 
-export const userStatusSchema = z.enum(["active", "blocked", "closing", "closed"]);
-export const kycStatusSchema = z.enum(["pending", "in_review", "approved", "rejected"]);
+export const userStatusSchema = z.enum([
+	"active",
+	"blocked",
+	"closing",
+	"closed",
+]);
+export const kycStatusSchema = z.enum([
+	"pending",
+	"in_review",
+	"approved",
+	"rejected",
+]);
 
 export const userSchema = z.object({
 	id: z.uuid(),
@@ -45,8 +55,13 @@ export const updateProfileFormSchema = z.object({
 	phone: z
 		.string()
 		.trim()
-		.refine((value) => value === "" || Phone.isValid(value), "Telefone inválido")
-		.transform((value) => (value === "" ? undefined : Phone.parse(value)?.toE164())),
+		.refine(
+			(value) => value === "" || Phone.isValid(value),
+			"Telefone inválido",
+		)
+		.transform((value) =>
+			value === "" ? undefined : Phone.parse(value)?.toE164(),
+		),
 });
 
 export type UpdateProfileForm = z.input<typeof updateProfileFormSchema>;
@@ -59,7 +74,9 @@ export const changeEmailFormSchema = z.object({
 export const changePasswordFormSchema = z
 	.object({
 		current_password: z.string().min(1, "Informe a senha atual"),
-		password: z.string().min(10, "A nova senha precisa ter ao menos 10 caracteres"),
+		password: z
+			.string()
+			.min(10, "A nova senha precisa ter ao menos 10 caracteres"),
 		password_confirmation: z.string().min(1, "Confirme a nova senha"),
 	})
 	.refine((values) => values.password === values.password_confirmation, {
@@ -73,7 +90,10 @@ const fileField = (message: string) =>
 	z
 		.instanceof(File, { message })
 		.refine((file) => file.size > 0, message)
-		.refine((file) => file.size <= 10 * 1024 * 1024, "Arquivo maior que o limite de 10 MB");
+		.refine(
+			(file) => file.size <= 10 * 1024 * 1024,
+			"Arquivo maior que o limite de 10 MB",
+		);
 
 export const kycSubmissionFormSchema = z.object({
 	document_type: kycDocumentTypeSchema,

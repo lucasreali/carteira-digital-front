@@ -18,13 +18,21 @@ route("GET", "/beneficiaries", (context) => {
 		.beneficiaries.filter((beneficiary) => beneficiary.user_id === user.id)
 		.filter((beneficiary) =>
 			search
-				? `${beneficiary.nickname} ${beneficiary.full_name}`.toLowerCase().includes(search)
+				? `${beneficiary.nickname} ${beneficiary.full_name}`
+						.toLowerCase()
+						.includes(search)
 				: true,
 		)
 		.sort((left, right) => Number(right.is_favorite) - Number(left.is_favorite))
 		.map(withoutOwner);
 
-	return json(paginate(beneficiaries, context.query.get("limit"), context.query.get("cursor")));
+	return json(
+		paginate(
+			beneficiaries,
+			context.query.get("limit"),
+			context.query.get("cursor"),
+		),
+	);
 });
 
 route("POST", "/beneficiaries", async (context) => {
@@ -34,7 +42,9 @@ route("POST", "/beneficiaries", async (context) => {
 	const payload = await context.body();
 	const state = db();
 	const matchedKey = state.pixKeys.find((key) => key.value === payload.pix_key);
-	const owner = state.users.find((candidate) => candidate.id === matchedKey?.user_id);
+	const owner = state.users.find(
+		(candidate) => candidate.id === matchedKey?.user_id,
+	);
 
 	const beneficiary: MockBeneficiary = {
 		id: `ben_${newId()}`,
@@ -59,13 +69,15 @@ route("PATCH", "/beneficiaries/:beneficiaryId", async (context) => {
 
 	const beneficiary = db().beneficiaries.find(
 		(candidate) =>
-			candidate.id === context.params.beneficiaryId && candidate.user_id === user.id,
+			candidate.id === context.params.beneficiaryId &&
+			candidate.user_id === user.id,
 	);
 	if (!beneficiary) return notFound();
 
 	const payload = await context.body();
 	if (payload.nickname) beneficiary.nickname = String(payload.nickname);
-	if (payload.is_favorite !== undefined) beneficiary.is_favorite = Boolean(payload.is_favorite);
+	if (payload.is_favorite !== undefined)
+		beneficiary.is_favorite = Boolean(payload.is_favorite);
 	commit();
 
 	return json(withoutOwner(beneficiary));
@@ -78,7 +90,8 @@ route("DELETE", "/beneficiaries/:beneficiaryId", (context) => {
 	const state = db();
 	const index = state.beneficiaries.findIndex(
 		(candidate) =>
-			candidate.id === context.params.beneficiaryId && candidate.user_id === user.id,
+			candidate.id === context.params.beneficiaryId &&
+			candidate.user_id === user.id,
 	);
 	if (index < 0) return notFound();
 

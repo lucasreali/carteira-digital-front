@@ -1,5 +1,5 @@
-import { authSessionSchema, tokenPairSchema } from "@/api/schemas/auth";
 import { request } from "@/api/http";
+import { authSessionSchema, tokenPairSchema } from "@/api/schemas/auth";
 
 export type RegisterPayload = {
 	full_name: string;
@@ -12,10 +12,22 @@ export type RegisterPayload = {
 
 export const authEndpoints = {
 	register: (body: RegisterPayload) =>
-		request({ path: "/auth/register", method: "POST", body, schema: authSessionSchema, anonymous: true }),
+		request({
+			path: "/auth/register",
+			method: "POST",
+			body,
+			schema: authSessionSchema,
+			anonymous: true,
+		}),
 
 	login: (body: { email: string; password: string; device_id?: string }) =>
-		request({ path: "/auth/login", method: "POST", body, schema: authSessionSchema, anonymous: true }),
+		request({
+			path: "/auth/login",
+			method: "POST",
+			body,
+			schema: authSessionSchema,
+			anonymous: true,
+		}),
 
 	refresh: (refresh_token: string) =>
 		request({

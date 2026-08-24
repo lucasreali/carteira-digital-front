@@ -2,8 +2,8 @@ import type { z } from "zod";
 
 import { sessionFrom, sessionStore } from "@/auth/session";
 import { apiBaseUrl } from "./config";
-import { errorEnvelopeSchema } from "./schemas/common";
 import { tokenPairSchema } from "./schemas/auth";
+import { errorEnvelopeSchema } from "./schemas/common";
 
 export type ApiErrorDetail = { field?: string; issue?: string };
 
@@ -39,7 +39,13 @@ export class ApiError extends Error {
 			);
 		}
 		const { code, message, details, trace_id } = parsed.data.error;
-		return new ApiError(response.status, code, message, details ?? [], trace_id);
+		return new ApiError(
+			response.status,
+			code,
+			message,
+			details ?? [],
+			trace_id,
+		);
 	}
 
 	fieldIssues() {
@@ -81,7 +87,9 @@ function buildUrl(path: string, query?: Record<string, QueryValue>) {
 			url.searchParams.set(key, String(value));
 		}
 	}
-	return apiBaseUrl.startsWith("http") ? url.toString() : `${url.pathname}${url.search}`;
+	return apiBaseUrl.startsWith("http")
+		? url.toString()
+		: `${url.pathname}${url.search}`;
 }
 
 let refreshInFlight: Promise<boolean> | null = null;
@@ -120,21 +128,27 @@ async function send(options: RequestOptions<z.ZodType | undefined>) {
 	if (!options.anonymous && session) {
 		headers.Authorization = `Bearer ${session.access_token}`;
 	}
-	if (options.idempotencyKey) headers["Idempotency-Key"] = options.idempotencyKey;
-	if (options.ifMatch !== undefined) headers["If-Match"] = String(options.ifMatch);
+	if (options.idempotencyKey)
+		headers["Idempotency-Key"] = options.idempotencyKey;
+	if (options.ifMatch !== undefined)
+		headers["If-Match"] = String(options.ifMatch);
 	if (options.body !== undefined) headers["Content-Type"] = "application/json";
 
 	return fetch(buildUrl(options.path, options.query), {
 		method: options.method ?? "GET",
 		headers,
-		body: options.formData ?? (options.body === undefined ? undefined : JSON.stringify(options.body)),
+		body:
+			options.formData ??
+			(options.body === undefined ? undefined : JSON.stringify(options.body)),
 	});
 }
 
 export async function request<TSchema extends z.ZodType>(
 	options: RequestOptions<TSchema>,
 ): Promise<z.infer<TSchema>>;
-export async function request(options: RequestOptions<undefined>): Promise<void>;
+export async function request(
+	options: RequestOptions<undefined>,
+): Promise<void>;
 export async function request(options: RequestOptions<z.ZodType | undefined>) {
 	let response = await send(options);
 

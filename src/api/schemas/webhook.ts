@@ -31,7 +31,10 @@ export const createdWebhookSchema = webhookSubscriptionSchema.extend({
 export const createWebhookFormSchema = z.object({
 	url: z
 		.url("URL inválida")
-		.refine((value) => value.startsWith("https://"), "A URL do webhook precisa usar HTTPS"),
+		.refine(
+			(value) => value.startsWith("https://"),
+			"A URL do webhook precisa usar HTTPS",
+		),
 	events: z.array(webhookEventSchema).min(1, "Selecione ao menos um evento"),
 });
 

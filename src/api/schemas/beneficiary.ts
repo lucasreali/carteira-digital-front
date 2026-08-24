@@ -33,7 +33,9 @@ export const createBeneficiaryFormSchema = z
 		is_favorite: z.boolean().default(false),
 	})
 	.superRefine((values, ctx) => {
-		const hasBankAccount = Boolean(values.bank_code && values.agency && values.account_number);
+		const hasBankAccount = Boolean(
+			values.bank_code && values.agency && values.account_number,
+		);
 		if (!values.pix_key && !hasBankAccount) {
 			ctx.addIssue({
 				path: ["pix_key"],
@@ -43,7 +45,11 @@ export const createBeneficiaryFormSchema = z
 			return;
 		}
 		if (values.pix_key && !looksLikePixKey(values.pix_key)) {
-			ctx.addIssue({ path: ["pix_key"], code: "custom", message: "Chave Pix inválida" });
+			ctx.addIssue({
+				path: ["pix_key"],
+				code: "custom",
+				message: "Chave Pix inválida",
+			});
 		}
 		if (values.bank_code && !/^\d{3}$/.test(values.bank_code)) {
 			ctx.addIssue({

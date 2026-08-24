@@ -50,7 +50,8 @@ export const sessionStore = {
 	save(session: Session) {
 		hydrated = true;
 		current = session;
-		if (isBrowser()) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+		if (isBrowser())
+			window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
 		notify();
 	},
 	clear() {

@@ -16,12 +16,14 @@ const MAX_LATENCY_MS = 320;
 let installed = false;
 
 function simulateLatency() {
-	const delay = MIN_LATENCY_MS + Math.random() * (MAX_LATENCY_MS - MIN_LATENCY_MS);
+	const delay =
+		MIN_LATENCY_MS + Math.random() * (MAX_LATENCY_MS - MIN_LATENCY_MS);
 	return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
 function baseUrl() {
-	const origin = typeof window === "undefined" ? "http://localhost" : window.location.origin;
+	const origin =
+		typeof window === "undefined" ? "http://localhost" : window.location.origin;
 	return new URL(apiBaseUrl, origin);
 }
 
@@ -43,7 +45,8 @@ export function installMockApi() {
 	globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 		const request = new Request(input, init);
 		const url = new URL(request.url);
-		const targetsApi = url.origin === base.origin && url.pathname.startsWith(base.pathname);
+		const targetsApi =
+			url.origin === base.origin && url.pathname.startsWith(base.pathname);
 		if (!targetsApi) return passthrough(input, init);
 
 		const pathname = url.pathname.slice(base.pathname.length) || "/";

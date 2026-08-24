@@ -44,10 +44,17 @@ export type ReversalPayload = {
 
 export const transactionEndpoints = {
 	list: (query: TransactionFilters = {}) =>
-		request({ path: "/transactions", query, schema: pageOf(transactionSchema) }),
+		request({
+			path: "/transactions",
+			query,
+			schema: pageOf(transactionSchema),
+		}),
 
 	get: (transactionId: string) =>
-		request({ path: `/transactions/${transactionId}`, schema: transactionSchema }),
+		request({
+			path: `/transactions/${transactionId}`,
+			schema: transactionSchema,
+		}),
 
 	deposit: (walletId: string, body: DepositPayload) =>
 		request({

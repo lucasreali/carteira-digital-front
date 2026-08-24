@@ -32,9 +32,12 @@ route("POST", "/webhooks/subscriptions", async (context) => {
 	const payload = await context.body();
 	const url = String(payload.url ?? "");
 	if (!url.startsWith("https://")) {
-		return fail(422, "invalid_webhook_url", "A URL do webhook precisa usar HTTPS.", [
-			{ field: "url", issue: "esquema http não permitido" },
-		]);
+		return fail(
+			422,
+			"invalid_webhook_url",
+			"A URL do webhook precisa usar HTTPS.",
+			[{ field: "url", issue: "esquema http não permitido" }],
+		);
 	}
 
 	const webhook: MockWebhook = {
@@ -58,7 +61,8 @@ route("DELETE", "/webhooks/subscriptions/:webhookId", (context) => {
 
 	const state = db();
 	const index = state.webhooks.findIndex(
-		(webhook) => webhook.id === context.params.webhookId && webhook.user_id === user.id,
+		(webhook) =>
+			webhook.id === context.params.webhookId && webhook.user_id === user.id,
 	);
 	if (index < 0) return notFound();
 

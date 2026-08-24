@@ -10,7 +10,10 @@ function hasRepeatedDigits(digits: string) {
 }
 
 function checkDigit(digits: string, weights: ReadonlyArray<number>) {
-	const sum = weights.reduce((total, weight, index) => total + weight * Number(digits[index]), 0);
+	const sum = weights.reduce(
+		(total, weight, index) => total + weight * Number(digits[index]),
+		0,
+	);
 	const remainder = sum % 11;
 	return remainder < 2 ? 0 : 11 - remainder;
 }

@@ -18,7 +18,10 @@ export function fail(
 	message: string,
 	details: Array<{ field?: string; issue?: string }> = [],
 ) {
-	return json({ error: { code, message, details, trace_id: newId().slice(0, 14) } }, status);
+	return json(
+		{ error: { code, message, details, trace_id: newId().slice(0, 14) } },
+		status,
+	);
 }
 
 export function maskDocument(digits: string) {
@@ -81,7 +84,11 @@ export function issueSession(user: MockUser) {
 	};
 }
 
-export function paginate<TItem>(items: ReadonlyArray<TItem>, limitRaw?: string | null, cursor?: string | null) {
+export function paginate<TItem>(
+	items: ReadonlyArray<TItem>,
+	limitRaw?: string | null,
+	cursor?: string | null,
+) {
 	const limit = Math.min(Math.max(Number(limitRaw ?? 20) || 20, 1), 100);
 	const offset = cursor ? Number(atob(cursor)) || 0 : 0;
 	const slice = items.slice(offset, offset + limit);
@@ -112,7 +119,8 @@ export function recordEntry(input: {
 		type: input.type,
 		direction: input.direction,
 		amount: input.amount,
-		balance_after: input.wallet.available_balance + input.wallet.blocked_balance,
+		balance_after:
+			input.wallet.available_balance + input.wallet.blocked_balance,
 		description: input.description,
 		created_at: nowIso(),
 	});

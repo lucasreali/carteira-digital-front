@@ -5,7 +5,10 @@ const formatters = new Map<string, Intl.NumberFormat>();
 function formatterFor(currency: string) {
 	const cached = formatters.get(currency);
 	if (cached) return cached;
-	const created = new Intl.NumberFormat("pt-BR", { style: "currency", currency });
+	const created = new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency,
+	});
 	formatters.set(currency, created);
 	return created;
 }

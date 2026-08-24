@@ -32,7 +32,9 @@ route("GET", "/payment-methods", (context) => {
 		.filter((method) => (type ? method.type === type : true))
 		.map(withoutOwner);
 
-	return json(paginate(methods, context.query.get("limit"), context.query.get("cursor")));
+	return json(
+		paginate(methods, context.query.get("limit"), context.query.get("cursor")),
+	);
 });
 
 route("POST", "/payment-methods", async (context) => {
@@ -69,7 +71,8 @@ route("POST", "/payment-methods", async (context) => {
 			status: "pending_verification",
 			bank_account: {
 				bank_code: account.bank_code,
-				bank_name: BANK_NAMES[account.bank_code] ?? `Banco ${account.bank_code}`,
+				bank_name:
+					BANK_NAMES[account.bank_code] ?? `Banco ${account.bank_code}`,
 				agency: account.agency,
 				account_masked: accountMasked,
 				account_type: account.account_type as "checking" | "savings",
@@ -128,7 +131,8 @@ route("GET", "/payment-methods/:paymentMethodId", (context) => {
 
 	const method = db().paymentMethods.find(
 		(candidate) =>
-			candidate.id === context.params.paymentMethodId && candidate.user_id === user.id,
+			candidate.id === context.params.paymentMethodId &&
+			candidate.user_id === user.id,
 	);
 	return method ? json(withoutOwner(method)) : notFound();
 });
@@ -140,7 +144,8 @@ route("PATCH", "/payment-methods/:paymentMethodId", async (context) => {
 	const state = db();
 	const method = state.paymentMethods.find(
 		(candidate) =>
-			candidate.id === context.params.paymentMethodId && candidate.user_id === user.id,
+			candidate.id === context.params.paymentMethodId &&
+			candidate.user_id === user.id,
 	);
 	if (!method) return notFound();
 
@@ -151,8 +156,10 @@ route("PATCH", "/payment-methods/:paymentMethodId", async (context) => {
 		}
 		method.is_default = true;
 	}
-	if (method.card && payload.exp_month) method.card.exp_month = Number(payload.exp_month);
-	if (method.card && payload.exp_year) method.card.exp_year = Number(payload.exp_year);
+	if (method.card && payload.exp_month)
+		method.card.exp_month = Number(payload.exp_month);
+	if (method.card && payload.exp_year)
+		method.card.exp_year = Number(payload.exp_year);
 	commit();
 
 	return json(withoutOwner(method));
@@ -165,7 +172,8 @@ route("DELETE", "/payment-methods/:paymentMethodId", (context) => {
 	const state = db();
 	const index = state.paymentMethods.findIndex(
 		(candidate) =>
-			candidate.id === context.params.paymentMethodId && candidate.user_id === user.id,
+			candidate.id === context.params.paymentMethodId &&
+			candidate.user_id === user.id,
 	);
 	if (index < 0) return notFound();
 

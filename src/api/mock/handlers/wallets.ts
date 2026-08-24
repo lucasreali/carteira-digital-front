@@ -1,8 +1,22 @@
 import type { MockWallet } from "../db";
 import { commit, db, newId, nowIso } from "../db";
 import { route } from "../router";
-import { findWallet, notFound, requireUser, totalOf, unauthorized, walletsOf } from "../shared";
-import { fail, json, noContent, paginate, toWallet, touchWallet } from "../support";
+import {
+	findWallet,
+	notFound,
+	requireUser,
+	totalOf,
+	unauthorized,
+	walletsOf,
+} from "../shared";
+import {
+	fail,
+	json,
+	noContent,
+	paginate,
+	touchWallet,
+	toWallet,
+} from "../support";
 
 route("GET", "/wallets", (context) => {
 	const user = requireUser(context);
@@ -13,10 +27,14 @@ route("GET", "/wallets", (context) => {
 	const wallets = db()
 		.wallets.filter((wallet) => wallet.user_id === user.id)
 		.filter((wallet) => (currency ? wallet.currency === currency : true))
-		.filter((wallet) => (status ? wallet.status === status : wallet.status !== "closed"))
+		.filter((wallet) =>
+			status ? wallet.status === status : wallet.status !== "closed",
+		)
 		.map(toWallet);
 
-	return json(paginate(wallets, context.query.get("limit"), context.query.get("cursor")));
+	return json(
+		paginate(wallets, context.query.get("limit"), context.query.get("cursor")),
+	);
 });
 
 route("POST", "/wallets", async (context) => {
@@ -71,9 +89,17 @@ route("PATCH", "/wallets/:walletId", async (context) => {
 
 	const ifMatch = context.request.headers.get("If-Match");
 	if (ifMatch && Number(ifMatch) !== wallet.version) {
-		return fail(409, "version_conflict", "O recurso foi modificado. Recarregue e tente novamente.", [
-			{ field: "version", issue: `esperado ${ifMatch}, atual ${wallet.version}` },
-		]);
+		return fail(
+			409,
+			"version_conflict",
+			"O recurso foi modificado. Recarregue e tente novamente.",
+			[
+				{
+					field: "version",
+					issue: `esperado ${ifMatch}, atual ${wallet.version}`,
+				},
+			],
+		);
 	}
 
 	const payload = await context.body();
@@ -96,14 +122,20 @@ route("DELETE", "/wallets/:walletId", (context) => {
 	const wallet = findWallet(user, context.params.walletId);
 	if (!wallet) return notFound();
 	if (totalOf(wallet) > 0) {
-		return fail(409, "wallet_not_empty", "Transfira o saldo antes de encerrar a carteira.", [
-			{ field: "total_balance", issue: String(totalOf(wallet)) },
-		]);
+		return fail(
+			409,
+			"wallet_not_empty",
+			"Transfira o saldo antes de encerrar a carteira.",
+			[{ field: "total_balance", issue: String(totalOf(wallet)) }],
+		);
 	}
 	if (wallet.is_default) {
-		return fail(409, "wallet_not_empty", "A carteira padrão não pode ser encerrada.", [
-			{ field: "is_default", issue: "true" },
-		]);
+		return fail(
+			409,
+			"wallet_not_empty",
+			"A carteira padrão não pode ser encerrada.",
+			[{ field: "is_default", issue: "true" }],
+		);
 	}
 
 	wallet.status = "closed";
@@ -123,7 +155,8 @@ route("GET", "/wallets/:walletId/balance", (context) => {
 	const pendingCredits = db()
 		.transactions.filter(
 			(transaction) =>
-				transaction.destination_wallet_id === wallet.id && transaction.status === "pending",
+				transaction.destination_wallet_id === wallet.id &&
+				transaction.status === "pending",
 		)
 		.reduce((total, transaction) => total + transaction.amount, 0);
 
@@ -149,7 +182,9 @@ route("GET", "/wallets/:walletId/statement", (context) => {
 	const to = context.query.get("to");
 	const entries = db()
 		.entries.filter((entry) => entry.wallet_id === wallet.id)
-		.filter((entry) => (from ? entry.created_at >= `${from}T00:00:00.000Z` : true))
+		.filter((entry) =>
+			from ? entry.created_at >= `${from}T00:00:00.000Z` : true,
+		)
 		.filter((entry) => (to ? entry.created_at <= `${to}T23:59:59.999Z` : true))
 		.sort((left, right) => right.created_at.localeCompare(left.created_at));
 
@@ -164,6 +199,10 @@ route("GET", "/wallets/:walletId/statement", (context) => {
 		wallet_id: wallet.id,
 		opening_balance: openingBalance,
 		closing_balance: entries[0]?.balance_after ?? totalOf(wallet),
-		...paginate(entries, context.query.get("limit"), context.query.get("cursor")),
+		...paginate(
+			entries,
+			context.query.get("limit"),
+			context.query.get("cursor"),
+		),
 	});
 });

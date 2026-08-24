@@ -81,10 +81,13 @@ export const depositFormSchema = z
 		payment_method_id: z.string().optional(),
 		description: optionalText(140),
 	})
-	.refine((values) => values.method !== "card" || Boolean(values.payment_method_id), {
-		path: ["payment_method_id"],
-		message: "Selecione o cartão usado no depósito",
-	});
+	.refine(
+		(values) => values.method !== "card" || Boolean(values.payment_method_id),
+		{
+			path: ["payment_method_id"],
+			message: "Selecione o cartão usado no depósito",
+		},
+	);
 
 export type DepositForm = z.input<typeof depositFormSchema>;
 
@@ -118,10 +121,20 @@ export const transferFormSchema = z
 				message: "Selecione a carteira de destino",
 			});
 		}
-		if (values.target === "email" && !z.email().safeParse(values.destination_email).success) {
-			ctx.addIssue({ path: ["destination_email"], code: "custom", message: "E-mail inválido" });
+		if (
+			values.target === "email" &&
+			!z.email().safeParse(values.destination_email).success
+		) {
+			ctx.addIssue({
+				path: ["destination_email"],
+				code: "custom",
+				message: "E-mail inválido",
+			});
 		}
-		if (values.target === "document" && !Document.isValid(values.destination_document)) {
+		if (
+			values.target === "document" &&
+			!Document.isValid(values.destination_document)
+		) {
 			ctx.addIssue({
 				path: ["destination_document"],
 				code: "custom",
@@ -131,15 +144,19 @@ export const transferFormSchema = z
 	})
 	.transform((values) => ({
 		source_wallet_id: values.source_wallet_id,
-		destination_wallet_id: values.target === "wallet" ? values.destination_wallet_id : undefined,
-		destination_email: values.target === "email" ? values.destination_email : undefined,
+		destination_wallet_id:
+			values.target === "wallet" ? values.destination_wallet_id : undefined,
+		destination_email:
+			values.target === "email" ? values.destination_email : undefined,
 		destination_document:
 			values.target === "document"
 				? (Document.parse(values.destination_document)?.toDigits() ?? undefined)
 				: undefined,
 		amount: values.amount,
 		description: values.description,
-		scheduled_for: values.scheduled_for ? new Date(values.scheduled_for).toISOString() : undefined,
+		scheduled_for: values.scheduled_for
+			? new Date(values.scheduled_for).toISOString()
+			: undefined,
 	}));
 
 export type TransferForm = z.input<typeof transferFormSchema>;

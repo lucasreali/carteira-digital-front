@@ -1,9 +1,9 @@
 import { commit, db, nowIso } from "../db";
 import { route } from "../router";
 import {
-	SETTLEMENT_DELAY_MS,
 	notFound,
 	requireUser,
+	SETTLEMENT_DELAY_MS,
 	totalOf,
 	unauthorized,
 	walletsOf,
@@ -30,16 +30,30 @@ route("PATCH", "/users/me", async (context) => {
 
 	const ifMatch = context.request.headers.get("If-Match");
 	if (ifMatch && Number(ifMatch) !== user.version) {
-		return fail(409, "version_conflict", "O recurso foi modificado. Recarregue e tente novamente.", [
-			{ field: "version", issue: `esperado ${ifMatch}, atual ${user.version}` },
-		]);
+		return fail(
+			409,
+			"version_conflict",
+			"O recurso foi modificado. Recarregue e tente novamente.",
+			[
+				{
+					field: "version",
+					issue: `esperado ${ifMatch}, atual ${user.version}`,
+				},
+			],
+		);
 	}
 
 	const payload = await context.body();
-	if ((payload.email || payload.password) && payload.current_password !== user.password) {
-		return fail(422, "validation_failed", "Não foi possível processar os dados enviados.", [
-			{ field: "current_password", issue: "senha atual incorreta" },
-		]);
+	if (
+		(payload.email || payload.password) &&
+		payload.current_password !== user.password
+	) {
+		return fail(
+			422,
+			"validation_failed",
+			"Não foi possível processar os dados enviados.",
+			[{ field: "current_password", issue: "senha atual incorreta" }],
+		);
 	}
 
 	if (payload.full_name) user.full_name = String(payload.full_name);
@@ -57,11 +71,17 @@ route("DELETE", "/users/me", (context) => {
 	const user = requireUser(context);
 	if (!user) return unauthorized();
 
-	const balance = walletsOf(user).reduce((total, wallet) => total + totalOf(wallet), 0);
+	const balance = walletsOf(user).reduce(
+		(total, wallet) => total + totalOf(wallet),
+		0,
+	);
 	if (balance > 0) {
-		return fail(409, "account_has_balance", "Não é possível encerrar a conta com saldo em aberto.", [
-			{ field: "balance", issue: `saldo disponível: ${balance}` },
-		]);
+		return fail(
+			409,
+			"account_has_balance",
+			"Não é possível encerrar a conta com saldo em aberto.",
+			[{ field: "balance", issue: `saldo disponível: ${balance}` }],
+		);
 	}
 
 	user.status = "closing";
@@ -69,7 +89,10 @@ route("DELETE", "/users/me", (context) => {
 
 	const scheduled = new Date();
 	scheduled.setDate(scheduled.getDate() + 30);
-	return json({ status: "closing", scheduled_deletion_at: scheduled.toISOString() }, 202);
+	return json(
+		{ status: "closing", scheduled_deletion_at: scheduled.toISOString() },
+		202,
+	);
 });
 
 route("GET", "/users/me/kyc", (context) => {
@@ -87,7 +110,11 @@ route("POST", "/users/me/kyc", (context) => {
 	const record = kycOf(user.id);
 	if (!record) return notFound();
 	if (record.status === "in_review") {
-		return fail(409, "kyc_already_in_review", "Já existe uma verificação em andamento.");
+		return fail(
+			409,
+			"kyc_already_in_review",
+			"Já existe uma verificação em andamento.",
+		);
 	}
 
 	record.status = "in_review";
@@ -102,7 +129,10 @@ route("POST", "/users/me/kyc", (context) => {
 		record.status = "approved";
 		record.level = 2;
 		record.reviewed_at = nowIso();
-		record.limits = { daily_transfer_limit: 1000000, nightly_transfer_limit: 100000 };
+		record.limits = {
+			daily_transfer_limit: 1000000,
+			nightly_transfer_limit: 100000,
+		};
 		user.kyc_status = "approved";
 		commit();
 	}, SETTLEMENT_DELAY_MS * 2);
