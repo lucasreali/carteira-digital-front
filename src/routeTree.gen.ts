@@ -12,11 +12,18 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as AppDepositarRouteImport } from './routes/_app/depositar'
 import { Route as AppInicioRouteImport } from './routes/_app/inicio'
+import { Route as AppSacarRouteImport } from './routes/_app/sacar'
+import { Route as AppTransferirRouteImport } from './routes/_app/transferir'
 import { Route as AuthCriarContaRouteImport } from './routes/_auth/criar-conta'
 import { Route as AuthEntrarRouteImport } from './routes/_auth/entrar'
 import { Route as AppCarteirasIndexRouteImport } from './routes/_app/carteiras/index'
 import { Route as AppCarteirasNovaRouteImport } from './routes/_app/carteiras/nova'
+import { Route as AppMetodosPagamentoIndexRouteImport } from './routes/_app/metodos-pagamento/index'
+import { Route as AppMetodosPagamentoNovoRouteImport } from './routes/_app/metodos-pagamento/novo'
+import { Route as AppTransacoesIndexRouteImport } from './routes/_app/transacoes/index'
+import { Route as AppTransacoesTransactionIdRouteImport } from './routes/_app/transacoes/$transactionId'
 import { Route as AppCarteirasWalletIdIndexRouteImport } from './routes/_app/carteiras/$walletId/index'
 import { Route as AppCarteirasWalletIdExtratoRouteImport } from './routes/_app/carteiras/$walletId/extrato'
 
@@ -33,9 +40,24 @@ const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppDepositarRoute = AppDepositarRouteImport.update({
+  id: '/depositar',
+  path: '/depositar',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInicioRoute = AppInicioRouteImport.update({
   id: '/inicio',
   path: '/inicio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSacarRoute = AppSacarRouteImport.update({
+  id: '/sacar',
+  path: '/sacar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTransferirRoute = AppTransferirRouteImport.update({
+  id: '/transferir',
+  path: '/transferir',
   getParentRoute: () => AppRoute,
 } as any)
 const AuthCriarContaRoute = AuthCriarContaRouteImport.update({
@@ -58,6 +80,28 @@ const AppCarteirasNovaRoute = AppCarteirasNovaRouteImport.update({
   path: '/carteiras/nova',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMetodosPagamentoIndexRoute =
+  AppMetodosPagamentoIndexRouteImport.update({
+    id: '/metodos-pagamento/',
+    path: '/metodos-pagamento/',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppMetodosPagamentoNovoRoute = AppMetodosPagamentoNovoRouteImport.update({
+  id: '/metodos-pagamento/novo',
+  path: '/metodos-pagamento/novo',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTransacoesIndexRoute = AppTransacoesIndexRouteImport.update({
+  id: '/transacoes/',
+  path: '/transacoes/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTransacoesTransactionIdRoute =
+  AppTransacoesTransactionIdRouteImport.update({
+    id: '/transacoes/$transactionId',
+    path: '/transacoes/$transactionId',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppCarteirasWalletIdIndexRoute =
   AppCarteirasWalletIdIndexRouteImport.update({
     id: '/carteiras/$walletId/',
@@ -73,21 +117,35 @@ const AppCarteirasWalletIdExtratoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/depositar': typeof AppDepositarRoute
   '/inicio': typeof AppInicioRoute
+  '/sacar': typeof AppSacarRoute
+  '/transferir': typeof AppTransferirRoute
   '/criar-conta': typeof AuthCriarContaRoute
   '/entrar': typeof AuthEntrarRoute
   '/carteiras/nova': typeof AppCarteirasNovaRoute
+  '/metodos-pagamento/novo': typeof AppMetodosPagamentoNovoRoute
+  '/transacoes/$transactionId': typeof AppTransacoesTransactionIdRoute
   '/carteiras/': typeof AppCarteirasIndexRoute
+  '/metodos-pagamento/': typeof AppMetodosPagamentoIndexRoute
+  '/transacoes/': typeof AppTransacoesIndexRoute
   '/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
   '/carteiras/$walletId/': typeof AppCarteirasWalletIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/depositar': typeof AppDepositarRoute
   '/inicio': typeof AppInicioRoute
+  '/sacar': typeof AppSacarRoute
+  '/transferir': typeof AppTransferirRoute
   '/criar-conta': typeof AuthCriarContaRoute
   '/entrar': typeof AuthEntrarRoute
   '/carteiras/nova': typeof AppCarteirasNovaRoute
+  '/metodos-pagamento/novo': typeof AppMetodosPagamentoNovoRoute
+  '/transacoes/$transactionId': typeof AppTransacoesTransactionIdRoute
   '/carteiras': typeof AppCarteirasIndexRoute
+  '/metodos-pagamento': typeof AppMetodosPagamentoIndexRoute
+  '/transacoes': typeof AppTransacoesIndexRoute
   '/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
   '/carteiras/$walletId': typeof AppCarteirasWalletIdIndexRoute
 }
@@ -96,11 +154,18 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/_auth': typeof AuthRouteWithChildren
+  '/_app/depositar': typeof AppDepositarRoute
   '/_app/inicio': typeof AppInicioRoute
+  '/_app/sacar': typeof AppSacarRoute
+  '/_app/transferir': typeof AppTransferirRoute
   '/_auth/criar-conta': typeof AuthCriarContaRoute
   '/_auth/entrar': typeof AuthEntrarRoute
   '/_app/carteiras/nova': typeof AppCarteirasNovaRoute
+  '/_app/metodos-pagamento/novo': typeof AppMetodosPagamentoNovoRoute
+  '/_app/transacoes/$transactionId': typeof AppTransacoesTransactionIdRoute
   '/_app/carteiras/': typeof AppCarteirasIndexRoute
+  '/_app/metodos-pagamento/': typeof AppMetodosPagamentoIndexRoute
+  '/_app/transacoes/': typeof AppTransacoesIndexRoute
   '/_app/carteiras/$walletId/extrato': typeof AppCarteirasWalletIdExtratoRoute
   '/_app/carteiras/$walletId/': typeof AppCarteirasWalletIdIndexRoute
 }
@@ -108,21 +173,35 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/depositar'
     | '/inicio'
+    | '/sacar'
+    | '/transferir'
     | '/criar-conta'
     | '/entrar'
     | '/carteiras/nova'
+    | '/metodos-pagamento/novo'
+    | '/transacoes/$transactionId'
     | '/carteiras/'
+    | '/metodos-pagamento/'
+    | '/transacoes/'
     | '/carteiras/$walletId/extrato'
     | '/carteiras/$walletId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/depositar'
     | '/inicio'
+    | '/sacar'
+    | '/transferir'
     | '/criar-conta'
     | '/entrar'
     | '/carteiras/nova'
+    | '/metodos-pagamento/novo'
+    | '/transacoes/$transactionId'
     | '/carteiras'
+    | '/metodos-pagamento'
+    | '/transacoes'
     | '/carteiras/$walletId/extrato'
     | '/carteiras/$walletId'
   id:
@@ -130,11 +209,18 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/_auth'
+    | '/_app/depositar'
     | '/_app/inicio'
+    | '/_app/sacar'
+    | '/_app/transferir'
     | '/_auth/criar-conta'
     | '/_auth/entrar'
     | '/_app/carteiras/nova'
+    | '/_app/metodos-pagamento/novo'
+    | '/_app/transacoes/$transactionId'
     | '/_app/carteiras/'
+    | '/_app/metodos-pagamento/'
+    | '/_app/transacoes/'
     | '/_app/carteiras/$walletId/extrato'
     | '/_app/carteiras/$walletId/'
   fileRoutesById: FileRoutesById
@@ -168,11 +254,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/depositar': {
+      id: '/_app/depositar'
+      path: '/depositar'
+      fullPath: '/depositar'
+      preLoaderRoute: typeof AppDepositarRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/inicio': {
       id: '/_app/inicio'
       path: '/inicio'
       fullPath: '/inicio'
       preLoaderRoute: typeof AppInicioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/sacar': {
+      id: '/_app/sacar'
+      path: '/sacar'
+      fullPath: '/sacar'
+      preLoaderRoute: typeof AppSacarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/transferir': {
+      id: '/_app/transferir'
+      path: '/transferir'
+      fullPath: '/transferir'
+      preLoaderRoute: typeof AppTransferirRouteImport
       parentRoute: typeof AppRoute
     }
     '/_auth/criar-conta': {
@@ -203,6 +310,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCarteirasNovaRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/metodos-pagamento/': {
+      id: '/_app/metodos-pagamento/'
+      path: '/metodos-pagamento'
+      fullPath: '/metodos-pagamento/'
+      preLoaderRoute: typeof AppMetodosPagamentoIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/metodos-pagamento/novo': {
+      id: '/_app/metodos-pagamento/novo'
+      path: '/metodos-pagamento/novo'
+      fullPath: '/metodos-pagamento/novo'
+      preLoaderRoute: typeof AppMetodosPagamentoNovoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/transacoes/': {
+      id: '/_app/transacoes/'
+      path: '/transacoes'
+      fullPath: '/transacoes/'
+      preLoaderRoute: typeof AppTransacoesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/transacoes/$transactionId': {
+      id: '/_app/transacoes/$transactionId'
+      path: '/transacoes/$transactionId'
+      fullPath: '/transacoes/$transactionId'
+      preLoaderRoute: typeof AppTransacoesTransactionIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/carteiras/$walletId/': {
       id: '/_app/carteiras/$walletId/'
       path: '/carteiras/$walletId'
@@ -221,17 +356,31 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppDepositarRoute: typeof AppDepositarRoute
   AppInicioRoute: typeof AppInicioRoute
+  AppSacarRoute: typeof AppSacarRoute
+  AppTransferirRoute: typeof AppTransferirRoute
   AppCarteirasNovaRoute: typeof AppCarteirasNovaRoute
+  AppMetodosPagamentoNovoRoute: typeof AppMetodosPagamentoNovoRoute
+  AppTransacoesTransactionIdRoute: typeof AppTransacoesTransactionIdRoute
   AppCarteirasIndexRoute: typeof AppCarteirasIndexRoute
+  AppMetodosPagamentoIndexRoute: typeof AppMetodosPagamentoIndexRoute
+  AppTransacoesIndexRoute: typeof AppTransacoesIndexRoute
   AppCarteirasWalletIdExtratoRoute: typeof AppCarteirasWalletIdExtratoRoute
   AppCarteirasWalletIdIndexRoute: typeof AppCarteirasWalletIdIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppDepositarRoute: AppDepositarRoute,
   AppInicioRoute: AppInicioRoute,
+  AppSacarRoute: AppSacarRoute,
+  AppTransferirRoute: AppTransferirRoute,
   AppCarteirasNovaRoute: AppCarteirasNovaRoute,
+  AppMetodosPagamentoNovoRoute: AppMetodosPagamentoNovoRoute,
+  AppTransacoesTransactionIdRoute: AppTransacoesTransactionIdRoute,
   AppCarteirasIndexRoute: AppCarteirasIndexRoute,
+  AppMetodosPagamentoIndexRoute: AppMetodosPagamentoIndexRoute,
+  AppTransacoesIndexRoute: AppTransacoesIndexRoute,
   AppCarteirasWalletIdExtratoRoute: AppCarteirasWalletIdExtratoRoute,
   AppCarteirasWalletIdIndexRoute: AppCarteirasWalletIdIndexRoute,
 }
