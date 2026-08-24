@@ -17,6 +17,7 @@ import { Route as AppFavorecidosRouteImport } from './routes/_app/favorecidos'
 import { Route as AppInicioRouteImport } from './routes/_app/inicio'
 import { Route as AppSacarRouteImport } from './routes/_app/sacar'
 import { Route as AppTransferirRouteImport } from './routes/_app/transferir'
+import { Route as AppWebhooksRouteImport } from './routes/_app/webhooks'
 import { Route as AuthCriarContaRouteImport } from './routes/_auth/criar-conta'
 import { Route as AuthEntrarRouteImport } from './routes/_auth/entrar'
 import { Route as AppCarteirasIndexRouteImport } from './routes/_app/carteiras/index'
@@ -69,6 +70,11 @@ const AppSacarRoute = AppSacarRouteImport.update({
 const AppTransferirRoute = AppTransferirRouteImport.update({
   id: '/transferir',
   path: '/transferir',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppWebhooksRoute = AppWebhooksRouteImport.update({
+  id: '/webhooks',
+  path: '/webhooks',
   getParentRoute: () => AppRoute,
 } as any)
 const AuthCriarContaRoute = AuthCriarContaRouteImport.update({
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/inicio': typeof AppInicioRoute
   '/sacar': typeof AppSacarRoute
   '/transferir': typeof AppTransferirRoute
+  '/webhooks': typeof AppWebhooksRoute
   '/criar-conta': typeof AuthCriarContaRoute
   '/entrar': typeof AuthEntrarRoute
   '/carteiras/nova': typeof AppCarteirasNovaRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/inicio': typeof AppInicioRoute
   '/sacar': typeof AppSacarRoute
   '/transferir': typeof AppTransferirRoute
+  '/webhooks': typeof AppWebhooksRoute
   '/criar-conta': typeof AuthCriarContaRoute
   '/entrar': typeof AuthEntrarRoute
   '/carteiras/nova': typeof AppCarteirasNovaRoute
@@ -207,6 +215,7 @@ export interface FileRoutesById {
   '/_app/inicio': typeof AppInicioRoute
   '/_app/sacar': typeof AppSacarRoute
   '/_app/transferir': typeof AppTransferirRoute
+  '/_app/webhooks': typeof AppWebhooksRoute
   '/_auth/criar-conta': typeof AuthCriarContaRoute
   '/_auth/entrar': typeof AuthEntrarRoute
   '/_app/carteiras/nova': typeof AppCarteirasNovaRoute
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/inicio'
     | '/sacar'
     | '/transferir'
+    | '/webhooks'
     | '/criar-conta'
     | '/entrar'
     | '/carteiras/nova'
@@ -255,6 +265,7 @@ export interface FileRouteTypes {
     | '/inicio'
     | '/sacar'
     | '/transferir'
+    | '/webhooks'
     | '/criar-conta'
     | '/entrar'
     | '/carteiras/nova'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/_app/inicio'
     | '/_app/sacar'
     | '/_app/transferir'
+    | '/_app/webhooks'
     | '/_auth/criar-conta'
     | '/_auth/entrar'
     | '/_app/carteiras/nova'
@@ -359,6 +371,13 @@ declare module '@tanstack/react-router' {
       path: '/transferir'
       fullPath: '/transferir'
       preLoaderRoute: typeof AppTransferirRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/webhooks': {
+      id: '/_app/webhooks'
+      path: '/webhooks'
+      fullPath: '/webhooks'
+      preLoaderRoute: typeof AppWebhooksRouteImport
       parentRoute: typeof AppRoute
     }
     '/_auth/criar-conta': {
@@ -475,6 +494,7 @@ interface AppRouteChildren {
   AppInicioRoute: typeof AppInicioRoute
   AppSacarRoute: typeof AppSacarRoute
   AppTransferirRoute: typeof AppTransferirRoute
+  AppWebhooksRoute: typeof AppWebhooksRoute
   AppCarteirasNovaRoute: typeof AppCarteirasNovaRoute
   AppMetodosPagamentoNovoRoute: typeof AppMetodosPagamentoNovoRoute
   AppPixChavesRoute: typeof AppPixChavesRoute
@@ -496,6 +516,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInicioRoute: AppInicioRoute,
   AppSacarRoute: AppSacarRoute,
   AppTransferirRoute: AppTransferirRoute,
+  AppWebhooksRoute: AppWebhooksRoute,
   AppCarteirasNovaRoute: AppCarteirasNovaRoute,
   AppMetodosPagamentoNovoRoute: AppMetodosPagamentoNovoRoute,
   AppPixChavesRoute: AppPixChavesRoute,
