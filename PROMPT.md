@@ -1,9 +1,3 @@
-# Prompt
-
-Original request that produced this project, reproduced verbatim.
-
----
-
 Preciso que gere todoas as minhas telas com base nessa documentação, use tailwind, componentes shadcn, autenticação de campos com zod e reactforms, vá comitando comforme foz desenvolvendo para não aglomerar diversos commits
 
 ```yaml
