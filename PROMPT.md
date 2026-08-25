@@ -1,0 +1,3046 @@
+# Prompt
+
+Original request that produced this project, reproduced verbatim.
+
+---
+
+Preciso que gere todoas as minhas telas com base nessa documentação, use tailwind, componentes shadcn, autenticação de campos com zod e reactforms, vá comitando comforme foz desenvolvendo para não aglomerar diversos commits
+
+```yaml
+openapi: 3.0.3
+
+info:
+  title: Digital Wallet API
+  version: 1.0.0
+  description: |
+    API de carteira digital: contas, saldos, depósitos, saques, transferências
+    internas, Pix, métodos de pagamento e extrato.
+
+    ## Convenções
+
+    - **Valores monetários**: sempre `integer`, em **centavos** (`1099` = R$ 10,99).
+      Nunca float — evita erro de arredondamento binário em operação financeira.
+    - **IDs**: UUID v4 (string).
+    - **Datas**: ISO-8601 UTC (`2026-08-24T14:32:05Z`).
+    - **Idempotência**: toda rota que movimenta dinheiro exige o header
+      `Idempotency-Key`. Repetir a mesma chave em até 24h devolve a resposta
+      original (mesmo status, mesmo body) em vez de duplicar a operação.
+    - **Paginação**: cursor-based (`limit` + `cursor`). Offset quebra em ledger
+      com escrita concorrente.
+    - **Erros**: envelope único `{ "error": { code, message, details, trace_id } }`.
+    - **Concorrência**: `PATCH` aceita `If-Match` com o `version` do recurso
+      (lock otimista). Sem ele, o servidor aplica last-write-wins.
+
+  contact:
+    name: Time de Plataforma
+    email: api@wallet.example.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.wallet.example.com/v1
+    description: Produção
+  - url: https://sandbox.api.wallet.example.com/v1
+    description: Sandbox (dinheiro fake, mesmos contratos)
+  - url: http://localhost:3000/v1
+    description: Local
+
+tags:
+  - name: Auth
+    description: Registro, login e ciclo de vida do token
+  - name: Users
+    description: Perfil do titular e KYC
+  - name: Wallets
+    description: CRUD de carteiras e consulta de saldo
+  - name: Transactions
+    description: Depósito, saque, transferência, estorno e extrato
+  - name: Payment Methods
+    description: Cartões e contas bancárias vinculadas
+  - name: Pix
+    description: Chaves, cobranças (QR) e pagamentos Pix
+  - name: Beneficiaries
+    description: Favorecidos salvos
+  - name: Webhooks
+    description: Assinatura de eventos assíncronos
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  # ────────────────────────────── AUTH ──────────────────────────────
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Cria um usuário
+      description: Cria o usuário e uma carteira BRL default. O usuário nasce com `kyc_status = pending` e limite reduzido.
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              full_name: Ana Souza
+              email: ana.souza@example.com
+              document: "39053344705"
+              phone: "+5541999998888"
+              password: "S3nh@ForteAqui"
+              birth_date: "1993-04-17"
+      responses:
+        '201':
+          description: Usuário criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+              example:
+                access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5ZDNi
+                refresh_token: rt_9f2c1b7a4e8d4c6fa1b0e3d2c5a79814
+                token_type: Bearer
+                expires_in: 900
+                user:
+                  id: 9d3b1f2e-7c44-4a1e-9b62-0f8a2d6c1e55
+                  full_name: Ana Souza
+                  email: ana.souza@example.com
+                  document_masked: "390.***.***-05"
+                  phone: "+5541999998888"
+                  status: active
+                  kyc_status: pending
+                  created_at: "2026-08-24T14:32:05Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: E-mail ou CPF já cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: resource_conflict
+                  message: Já existe um usuário com este CPF.
+                  details: []
+                  trace_id: 01J9X7QK3M2R6T
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Autentica e emite tokens
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: ana.souza@example.com
+              password: "S3nh@ForteAqui"
+              device_id: 2f8a-ios-15pro
+      responses:
+        '200':
+          description: Autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+              example:
+                access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5ZDNi
+                refresh_token: rt_9f2c1b7a4e8d4c6fa1b0e3d2c5a79814
+                token_type: Bearer
+                expires_in: 900
+                user:
+                  id: 9d3b1f2e-7c44-4a1e-9b62-0f8a2d6c1e55
+                  full_name: Ana Souza
+                  email: ana.souza@example.com
+                  document_masked: "390.***.***-05"
+                  phone: "+5541999998888"
+                  status: active
+                  kyc_status: approved
+                  created_at: "2026-08-24T14:32:05Z"
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: invalid_credentials
+                  message: E-mail ou senha incorretos.
+                  details: []
+                  trace_id: 01J9X7QK3M2R6T
+        '403':
+          description: Conta bloqueada ou suspensa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: account_blocked
+                  message: Conta suspensa por análise de risco. Contate o suporte.
+                  details: []
+                  trace_id: 01J9X7QK3M2R6T
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Renova o access token
+      description: Rotaciona o refresh token. O token antigo é invalidado na resposta (rotation + reuse detection).
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+            example:
+              refresh_token: rt_9f2c1b7a4e8d4c6fa1b0e3d2c5a79814
+      responses:
+        '200':
+          description: Token renovado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+              example:
+                access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJyb3Rh
+                refresh_token: rt_be31a70d5c9f42a2b8e6d10473cf9a22
+                token_type: Bearer
+                expires_in: 900
+        '401':
+          description: Refresh token inválido, expirado ou já utilizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: invalid_refresh_token
+                  message: Refresh token inválido ou já utilizado. Faça login novamente.
+                  details: []
+                  trace_id: 01J9X7QK3M2R6T
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Encerra a sessão
+      description: Revoga o refresh token do device atual. `all_devices=true` revoga todas as sessões.
+      operationId: logout
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                all_devices:
+                  type: boolean
+                  default: false
+            example:
+              all_devices: false
+      responses:
+        '204':
+          description: Sessão encerrada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ────────────────────────────── USERS ──────────────────────────────
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Retorna o usuário autenticado
+      operationId: getMe
+      responses:
+        '200':
+          description: Perfil do usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 9d3b1f2e-7c44-4a1e-9b62-0f8a2d6c1e55
+                full_name: Ana Souza
+                email: ana.souza@example.com
+                document_masked: "390.***.***-05"
+                phone: "+5541999998888"
+                status: active
+                kyc_status: approved
+                created_at: "2026-08-24T14:32:05Z"
+                updated_at: "2026-08-24T14:32:05Z"
+                version: 3
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      tags: [Users]
+      summary: Atualiza dados do usuário
+      description: |
+        Atualização parcial. `document` e `birth_date` são imutáveis após KYC aprovado.
+        Alterar `email` ou `phone` dispara reverificação.
+      operationId: updateMe
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+            example:
+              full_name: Ana Souza Lima
+              phone: "+5541988887777"
+      responses:
+        '200':
+          description: Usuário atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 9d3b1f2e-7c44-4a1e-9b62-0f8a2d6c1e55
+                full_name: Ana Souza Lima
+                email: ana.souza@example.com
+                document_masked: "390.***.***-05"
+                phone: "+5541988887777"
+                status: active
+                kyc_status: approved
+                created_at: "2026-08-24T14:32:05Z"
+                updated_at: "2026-08-24T18:10:44Z"
+                version: 4
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Conflito de versão (recurso alterado por outra requisição)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: version_conflict
+                  message: O recurso foi modificado. Recarregue e tente novamente.
+                  details:
+                    - field: version
+                      issue: "esperado 3, atual 4"
+                  trace_id: 01J9X7QK3M2R6T
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Users]
+      summary: Encerra a conta
+      description: |
+        Soft delete. Bloqueado se houver saldo positivo ou transação pendente —
+        o extrato é retido pelo prazo legal de guarda.
+      operationId: deleteMe
+      responses:
+        '202':
+          description: Encerramento agendado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  scheduled_deletion_at:
+                    type: string
+                    format: date-time
+              example:
+                status: closing
+                scheduled_deletion_at: "2026-09-23T00:00:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Existe saldo ou pendência
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: account_has_balance
+                  message: Não é possível encerrar a conta com saldo em aberto.
+                  details:
+                    - field: balance
+                      issue: "saldo disponível: 15000"
+                  trace_id: 01J9X7QK3M2R6T
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/me/kyc:
+    get:
+      tags: [Users]
+      summary: Consulta status do KYC
+      operationId: getKyc
+      responses:
+        '200':
+          description: Status atual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kyc'
+              example:
+                status: approved
+                level: 2
+                submitted_at: "2026-08-24T15:02:00Z"
+                reviewed_at: "2026-08-24T15:40:12Z"
+                rejection_reason: null
+                limits:
+                  daily_transfer_limit: 1000000
+                  nightly_transfer_limit: 100000
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Users]
+      summary: Envia documentos para KYC
+      operationId: submitKyc
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [document_type, document_front, selfie]
+              properties:
+                document_type:
+                  type: string
+                  enum: [cnh, rg, passport]
+                document_front:
+                  type: string
+                  format: binary
+                document_back:
+                  type: string
+                  format: binary
+                selfie:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: Documentos recebidos, análise em andamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kyc'
+              example:
+                status: in_review
+                level: 1
+                submitted_at: "2026-08-24T15:02:00Z"
+                reviewed_at: null
+                rejection_reason: null
+                limits:
+                  daily_transfer_limit: 100000
+                  nightly_transfer_limit: 50000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Já existe uma análise em andamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: kyc_already_in_review
+                  message: Já existe uma verificação em andamento.
+                  details: []
+                  trace_id: 01J9X7QK3M2R6T
+        '413':
+          description: Arquivo excede o tamanho máximo (10 MB)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: payload_too_large
+                  message: Arquivo maior que o limite de 10 MB.
+                  details:
+                    - field: document_front
+                      issue: "14.2 MB"
+                  trace_id: 01J9X7QK3M2R6T
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ────────────────────────────── WALLETS ──────────────────────────────
+
+  /wallets:
+    get:
+      tags: [Wallets]
+      summary: Lista as carteiras do usuário
+      operationId: listWallets
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - name: currency
+          in: query
+          schema:
+            type: string
+            example: BRL
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, frozen, closed]
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Wallet'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                data:
+                  - id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                    user_id: 9d3b1f2e-7c44-4a1e-9b62-0f8a2d6c1e55
+                    alias: Conta principal
+                    currency: BRL
+                    available_balance: 152340
+                    blocked_balance: 5000
+                    total_balance: 157340
+                    is_default: true
+                    status: active
+                    created_at: "2026-08-24T14:32:05Z"
+                    updated_at: "2026-08-24T19:11:02Z"
+                    version: 12
+                  - id: 7f8e9d0c-1b2a-4c3d-9e8f-7a6b5c4d3e2f
+                    user_id: 9d3b1f2e-7c44-4a1e-9b62-0f8a2d6c1e55
+                    alias: Reserva viagem
+                    currency: BRL
+                    available_balance: 480000
+                    blocked_balance: 0
+                    total_balance: 480000
+                    is_default: false
+                    status: active
+                    created_at: "2026-08-24T16:00:00Z"
+                    updated_at: "2026-08-24T16:00:00Z"
+                    version: 1
+                pagination:
+                  next_cursor: null
+                  has_more: false
+                  limit: 20
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Wallets]
+      summary: Cria uma carteira
+      operationId: createWallet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWalletRequest'
+            example:
+              alias: Reserva viagem
+              currency: BRL
+              is_default: false
+      responses:
+        '201':
+          description: Carteira criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+              example:
+                id: 7f8e9d0c-1b2a-4c3d-9e8f-7a6b5c4d3e2f
+                user_id: 9d3b1f2e-7c44-4a1e-9b62-0f8a2d6c1e55
+                alias: Reserva viagem
+                currency: BRL
+                available_balance: 0
+                blocked_balance: 0
+                total_balance: 0
+                is_default: false
+                status: active
+                created_at: "2026-08-24T16:00:00Z"
+                updated_at: "2026-08-24T16:00:00Z"
+                version: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: KYC insuficiente para múltiplas carteiras
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: kyc_required
+                  message: Conclua a verificação de identidade para criar novas carteiras.
+                  details: []
+                  trace_id: 01J9X7QK3M2R6T
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /wallets/{walletId}:
+    parameters:
+      - $ref: '#/components/parameters/WalletId'
+    get:
+      tags: [Wallets]
+      summary: Detalha uma carteira
+      operationId: getWallet
+      responses:
+        '200':
+          description: Carteira
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+              example:
+                id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                user_id: 9d3b1f2e-7c44-4a1e-9b62-0f8a2d6c1e55
+                alias: Conta principal
+                currency: BRL
+                available_balance: 152340
+                blocked_balance: 5000
+                total_balance: 157340
+                is_default: true
+                status: active
+                created_at: "2026-08-24T14:32:05Z"
+                updated_at: "2026-08-24T19:11:02Z"
+                version: 12
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      tags: [Wallets]
+      summary: Atualiza uma carteira
+      description: Só `alias`, `is_default` e `status` (active/frozen) são mutáveis. Saldo nunca é editável por API.
+      operationId: updateWallet
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWalletRequest'
+            example:
+              alias: Conta do dia a dia
+              is_default: true
+      responses:
+        '200':
+          description: Carteira atualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+              example:
+                id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                user_id: 9d3b1f2e-7c44-4a1e-9b62-0f8a2d6c1e55
+                alias: Conta do dia a dia
+                currency: BRL
+                available_balance: 152340
+                blocked_balance: 5000
+                total_balance: 157340
+                is_default: true
+                status: active
+                created_at: "2026-08-24T14:32:05Z"
+                updated_at: "2026-08-24T20:03:19Z"
+                version: 13
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Wallets]
+      summary: Encerra uma carteira
+      description: Exige saldo zerado e nenhuma transação pendente. A carteira default não pode ser removida.
+      operationId: deleteWallet
+      responses:
+        '204':
+          description: Carteira encerrada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Carteira com saldo, pendências ou marcada como default
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: wallet_not_empty
+                  message: Transfira o saldo antes de encerrar a carteira.
+                  details:
+                    - field: total_balance
+                      issue: "157340"
+                  trace_id: 01J9X7QK3M2R6T
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /wallets/{walletId}/balance:
+    parameters:
+      - $ref: '#/components/parameters/WalletId'
+    get:
+      tags: [Wallets]
+      summary: Consulta saldo
+      description: Endpoint leve, otimizado para polling do app (cacheável por 5s).
+      operationId: getBalance
+      responses:
+        '200':
+          description: Saldo atual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+              example:
+                wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                currency: BRL
+                available_balance: 152340
+                blocked_balance: 5000
+                pending_credits: 20000
+                total_balance: 157340
+                updated_at: "2026-08-24T19:11:02Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /wallets/{walletId}/statement:
+    parameters:
+      - $ref: '#/components/parameters/WalletId'
+    get:
+      tags: [Transactions]
+      summary: Extrato da carteira
+      description: Lançamentos ordenados do mais recente para o mais antigo, com saldo acumulado por linha.
+      operationId: getStatement
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2026-08-01"
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2026-08-24"
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Extrato paginado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wallet_id:
+                    type: string
+                    format: uuid
+                  opening_balance:
+                    type: integer
+                  closing_balance:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StatementEntry'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                opening_balance: 100000
+                closing_balance: 152340
+                data:
+                  - id: e1c2b3a4-0000-4a11-9f22-aa33bb44cc55
+                    transaction_id: 3c9e5f10-2b8a-4d7c-9e1f-6a5b4c3d2e10
+                    type: transfer_in
+                    direction: credit
+                    amount: 75000
+                    balance_after: 152340
+                    description: Transferência recebida de Bruno Lima
+                    created_at: "2026-08-24T19:11:02Z"
+                  - id: e1c2b3a4-0001-4a11-9f22-aa33bb44cc56
+                    transaction_id: 8a7b6c5d-4e3f-4a2b-9c1d-0e9f8a7b6c5d
+                    type: withdrawal
+                    direction: debit
+                    amount: 22660
+                    balance_after: 77340
+                    description: Saque para Banco 341 ag 0001 cc 12345-6
+                    created_at: "2026-08-23T10:05:41Z"
+                pagination:
+                  next_cursor: eyJpZCI6ImUxYzJiM2E0LTAwMDEifQ
+                  has_more: true
+                  limit: 20
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ────────────────────────── TRANSACTIONS ──────────────────────────
+
+  /wallets/{walletId}/deposits:
+    parameters:
+      - $ref: '#/components/parameters/WalletId'
+    post:
+      tags: [Transactions]
+      summary: Cria um depósito (entrada de fundos)
+      description: |
+        Gera uma intenção de depósito. O crédito só é confirmado quando o provedor
+        (adquirente / Pix / boleto) notifica o webhook. Estado inicial: `pending`.
+      operationId: createDeposit
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositRequest'
+            example:
+              amount: 50000
+              method: pix
+              payment_method_id: null
+              description: Recarga da carteira
+      responses:
+        '201':
+          description: Depósito criado (aguardando confirmação)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+              example:
+                id: 5d4c3b2a-1f0e-4d9c-8b7a-6e5d4c3b2a19
+                type: deposit
+                status: pending
+                amount: 50000
+                fee: 0
+                net_amount: 50000
+                currency: BRL
+                source_wallet_id: null
+                destination_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                description: Recarga da carteira
+                metadata:
+                  method: pix
+                  qr_code: "00020126580014BR.GOV.BCB.PIX0136a1b2c3d4"
+                  expires_at: "2026-08-24T20:32:05Z"
+                idempotency_key: dep_2026-08-24_ana_001
+                created_at: "2026-08-24T20:02:05Z"
+                completed_at: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '422':
+          description: Valor fora dos limites permitidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: amount_out_of_range
+                  message: Valor abaixo do mínimo permitido.
+                  details:
+                    - field: amount
+                      issue: "mínimo: 100 (R$ 1,00)"
+                  trace_id: 01J9X7QK3M2R6T
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /wallets/{walletId}/withdrawals:
+    parameters:
+      - $ref: '#/components/parameters/WalletId'
+    post:
+      tags: [Transactions]
+      summary: Cria um saque (saída para conta bancária)
+      description: Debita e bloqueia o valor imediatamente; a liquidação é assíncrona (`processing` → `completed`).
+      operationId: createWithdrawal
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawalRequest'
+            example:
+              amount: 22660
+              payment_method_id: pm_4c3d2e1f-9a8b-4c7d-6e5f-4a3b2c1d0e9f
+              description: Saque para conta Itaú
+      responses:
+        '201':
+          description: Saque em processamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+              example:
+                id: 8a7b6c5d-4e3f-4a2b-9c1d-0e9f8a7b6c5d
+                type: withdrawal
+                status: processing
+                amount: 22660
+                fee: 350
+                net_amount: 22310
+                currency: BRL
+                source_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                destination_wallet_id: null
+                description: Saque para conta Itaú
+                metadata:
+                  bank_code: "341"
+                  agency: "0001"
+                  account_masked: "****5-6"
+                  estimated_settlement: "2026-08-25T11:00:00Z"
+                idempotency_key: wd_2026-08-24_ana_001
+                created_at: "2026-08-24T20:10:00Z"
+                completed_at: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '422':
+          $ref: '#/components/responses/InsufficientFunds'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /transfers:
+    post:
+      tags: [Transactions]
+      summary: Transferência entre carteiras
+      description: |
+        Movimentação interna, atômica e síncrona. Débito e crédito ocorrem na mesma
+        transação de banco. O destino pode ser identificado por `destination_wallet_id`,
+        `destination_email` ou `destination_document` — exatamente um deles.
+      operationId: createTransfer
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+            examples:
+              porCarteira:
+                summary: Por ID de carteira
+                value:
+                  source_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                  destination_wallet_id: bb11cc22-dd33-4ee4-9ff5-001122334455
+                  amount: 75000
+                  description: Aluguel agosto
+              porEmail:
+                summary: Por e-mail do destinatário
+                value:
+                  source_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                  destination_email: bruno.lima@example.com
+                  amount: 12500
+                  description: Rachar a conta
+      responses:
+        '201':
+          description: Transferência concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+              example:
+                id: 3c9e5f10-2b8a-4d7c-9e1f-6a5b4c3d2e10
+                type: transfer
+                status: completed
+                amount: 75000
+                fee: 0
+                net_amount: 75000
+                currency: BRL
+                source_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                destination_wallet_id: bb11cc22-dd33-4ee4-9ff5-001122334455
+                description: Aluguel agosto
+                metadata:
+                  counterparty_name: Bruno Lima
+                  counterparty_document_masked: "***.456.789-**"
+                idempotency_key: trf_2026-08-24_ana_007
+                created_at: "2026-08-24T19:11:02Z"
+                completed_at: "2026-08-24T19:11:02Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Limite diário/noturno excedido ou KYC insuficiente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: limit_exceeded
+                  message: Valor excede o limite noturno da conta.
+                  details:
+                    - field: amount
+                      issue: "limite noturno: 100000, disponível hoje: 40000"
+                  trace_id: 01J9X7QK3M2R6T
+        '404':
+          description: Carteira de origem ou destinatário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: destination_not_found
+                  message: Nenhum usuário encontrado para o e-mail informado.
+                  details: []
+                  trace_id: 01J9X7QK3M2R6T
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '422':
+          $ref: '#/components/responses/InsufficientFunds'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /transactions:
+    get:
+      tags: [Transactions]
+      summary: Lista transações
+      operationId: listTransactions
+      parameters:
+        - name: wallet_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [deposit, withdrawal, transfer, pix_in, pix_out, reversal, fee]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, processing, completed, failed, reversed, canceled]
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: min_amount
+          in: query
+          schema:
+            type: integer
+        - name: max_amount
+          in: query
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                data:
+                  - id: 3c9e5f10-2b8a-4d7c-9e1f-6a5b4c3d2e10
+                    type: transfer
+                    status: completed
+                    amount: 75000
+                    fee: 0
+                    net_amount: 75000
+                    currency: BRL
+                    source_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                    destination_wallet_id: bb11cc22-dd33-4ee4-9ff5-001122334455
+                    description: Aluguel agosto
+                    metadata:
+                      counterparty_name: Bruno Lima
+                    idempotency_key: trf_2026-08-24_ana_007
+                    created_at: "2026-08-24T19:11:02Z"
+                    completed_at: "2026-08-24T19:11:02Z"
+                  - id: 5d4c3b2a-1f0e-4d9c-8b7a-6e5d4c3b2a19
+                    type: deposit
+                    status: pending
+                    amount: 50000
+                    fee: 0
+                    net_amount: 50000
+                    currency: BRL
+                    source_wallet_id: null
+                    destination_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                    description: Recarga da carteira
+                    metadata:
+                      method: pix
+                    idempotency_key: dep_2026-08-24_ana_001
+                    created_at: "2026-08-24T20:02:05Z"
+                    completed_at: null
+                pagination:
+                  next_cursor: eyJpZCI6IjVkNGMzYjJhIn0
+                  has_more: true
+                  limit: 20
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /transactions/{transactionId}:
+    parameters:
+      - name: transactionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: 3c9e5f10-2b8a-4d7c-9e1f-6a5b4c3d2e10
+    get:
+      tags: [Transactions]
+      summary: Detalha uma transação
+      operationId: getTransaction
+      responses:
+        '200':
+          description: Transação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+              example:
+                id: 3c9e5f10-2b8a-4d7c-9e1f-6a5b4c3d2e10
+                type: transfer
+                status: completed
+                amount: 75000
+                fee: 0
+                net_amount: 75000
+                currency: BRL
+                source_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                destination_wallet_id: bb11cc22-dd33-4ee4-9ff5-001122334455
+                description: Aluguel agosto
+                metadata:
+                  counterparty_name: Bruno Lima
+                  counterparty_document_masked: "***.456.789-**"
+                idempotency_key: trf_2026-08-24_ana_007
+                created_at: "2026-08-24T19:11:02Z"
+                completed_at: "2026-08-24T19:11:02Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /transactions/{transactionId}/reversal:
+    parameters:
+      - name: transactionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: 3c9e5f10-2b8a-4d7c-9e1f-6a5b4c3d2e10
+    post:
+      tags: [Transactions]
+      summary: Estorna uma transação
+      description: |
+        Cria um lançamento **compensatório** — nunca apaga nem edita o original.
+        Permitido apenas para transações `completed`, dentro de 90 dias, e se o
+        destinatário tiver saldo suficiente. Aceita estorno parcial via `amount`.
+      operationId: reverseTransaction
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                amount:
+                  type: integer
+                  description: Valor a estornar em centavos. Omitido = estorno total.
+                  example: 75000
+                reason:
+                  type: string
+                  enum: [fraud, duplicate, customer_request, operational_error]
+            example:
+              amount: 75000
+              reason: customer_request
+      responses:
+        '201':
+          description: Estorno criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+              example:
+                id: f0e1d2c3-b4a5-4968-8877-665544332211
+                type: reversal
+                status: completed
+                amount: 75000
+                fee: 0
+                net_amount: 75000
+                currency: BRL
+                source_wallet_id: bb11cc22-dd33-4ee4-9ff5-001122334455
+                destination_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                description: "Estorno da transação 3c9e5f10"
+                metadata:
+                  original_transaction_id: 3c9e5f10-2b8a-4d7c-9e1f-6a5b4c3d2e10
+                  reason: customer_request
+                idempotency_key: rev_2026-08-24_ana_001
+                created_at: "2026-08-24T21:00:00Z"
+                completed_at: "2026-08-24T21:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Transação já estornada ou em estado não estornável
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: transaction_not_reversible
+                  message: Esta transação já foi estornada.
+                  details:
+                    - field: status
+                      issue: reversed
+                  trace_id: 01J9X7QK3M2R6T
+        '422':
+          $ref: '#/components/responses/InsufficientFunds'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ─────────────────────── PAYMENT METHODS ───────────────────────
+
+  /payment-methods:
+    get:
+      tags: [Payment Methods]
+      summary: Lista métodos de pagamento
+      operationId: listPaymentMethods
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [card, bank_account]
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentMethod'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                data:
+                  - id: pm_4c3d2e1f-9a8b-4c7d-6e5f-4a3b2c1d0e9f
+                    type: bank_account
+                    is_default: true
+                    status: verified
+                    bank_account:
+                      bank_code: "341"
+                      bank_name: Itaú Unibanco
+                      agency: "0001"
+                      account_masked: "****5-6"
+                      account_type: checking
+                      holder_document_masked: "390.***.***-05"
+                    card: null
+                    created_at: "2026-08-24T15:00:00Z"
+                  - id: pm_1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e
+                    type: card
+                    is_default: false
+                    status: verified
+                    bank_account: null
+                    card:
+                      brand: visa
+                      last4: "4242"
+                      exp_month: 12
+                      exp_year: 2029
+                      holder_name: ANA SOUZA
+                    created_at: "2026-08-24T15:20:00Z"
+                pagination:
+                  next_cursor: null
+                  has_more: false
+                  limit: 20
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Payment Methods]
+      summary: Vincula um método de pagamento
+      description: |
+        Cartão **nunca** trafega em claro: envie o `token` gerado pelo SDK do
+        adquirente (PCI-DSS scope out). Conta bancária passa por verificação
+        de titularidade antes de ficar `verified`.
+      operationId: createPaymentMethod
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentMethodRequest'
+            examples:
+              contaBancaria:
+                summary: Conta bancária
+                value:
+                  type: bank_account
+                  is_default: true
+                  bank_account:
+                    bank_code: "341"
+                    agency: "0001"
+                    account_number: "123456"
+                    account_digit: "6"
+                    account_type: checking
+              cartaoTokenizado:
+                summary: Cartão via token do gateway
+                value:
+                  type: card
+                  is_default: false
+                  card_token: tok_live_9f8e7d6c5b4a3210
+      responses:
+        '201':
+          description: Método vinculado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethod'
+              example:
+                id: pm_4c3d2e1f-9a8b-4c7d-6e5f-4a3b2c1d0e9f
+                type: bank_account
+                is_default: true
+                status: pending_verification
+                bank_account:
+                  bank_code: "341"
+                  bank_name: Itaú Unibanco
+                  agency: "0001"
+                  account_masked: "****5-6"
+                  account_type: checking
+                  holder_document_masked: "390.***.***-05"
+                card: null
+                created_at: "2026-08-24T15:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Método já cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: payment_method_exists
+                  message: Esta conta bancária já está vinculada ao seu perfil.
+                  details: []
+                  trace_id: 01J9X7QK3M2R6T
+        '422':
+          description: Titularidade divergente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: holder_mismatch
+                  message: A conta informada não pertence ao titular da carteira.
+                  details:
+                    - field: bank_account.account_number
+                      issue: "CPF do titular divergente"
+                  trace_id: 01J9X7QK3M2R6T
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /payment-methods/{paymentMethodId}:
+    parameters:
+      - name: paymentMethodId
+        in: path
+        required: true
+        schema:
+          type: string
+        example: pm_4c3d2e1f-9a8b-4c7d-6e5f-4a3b2c1d0e9f
+    get:
+      tags: [Payment Methods]
+      summary: Detalha um método de pagamento
+      operationId: getPaymentMethod
+      responses:
+        '200':
+          description: Método de pagamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethod'
+              example:
+                id: pm_4c3d2e1f-9a8b-4c7d-6e5f-4a3b2c1d0e9f
+                type: bank_account
+                is_default: true
+                status: verified
+                bank_account:
+                  bank_code: "341"
+                  bank_name: Itaú Unibanco
+                  agency: "0001"
+                  account_masked: "****5-6"
+                  account_type: checking
+                  holder_document_masked: "390.***.***-05"
+                card: null
+                created_at: "2026-08-24T15:00:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      tags: [Payment Methods]
+      summary: Atualiza um método de pagamento
+      description: Apenas `is_default` e, para cartão, `exp_month`/`exp_year`. Número de conta e PAN são imutáveis.
+      operationId: updatePaymentMethod
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_default:
+                  type: boolean
+                exp_month:
+                  type: integer
+                exp_year:
+                  type: integer
+            example:
+              is_default: true
+      responses:
+        '200':
+          description: Atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethod'
+              example:
+                id: pm_1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e
+                type: card
+                is_default: true
+                status: verified
+                bank_account: null
+                card:
+                  brand: visa
+                  last4: "4242"
+                  exp_month: 12
+                  exp_year: 2029
+                  holder_name: ANA SOUZA
+                created_at: "2026-08-24T15:20:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Payment Methods]
+      summary: Remove um método de pagamento
+      operationId: deletePaymentMethod
+      responses:
+        '204':
+          description: Removido
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Há transação em andamento usando este método
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: payment_method_in_use
+                  message: Existe um saque em processamento vinculado a este método.
+                  details:
+                    - field: transaction_id
+                      issue: 8a7b6c5d-4e3f-4a2b-9c1d-0e9f8a7b6c5d
+                  trace_id: 01J9X7QK3M2R6T
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ────────────────────────────── PIX ──────────────────────────────
+
+  /pix/keys:
+    get:
+      tags: [Pix]
+      summary: Lista chaves Pix do usuário
+      operationId: listPixKeys
+      responses:
+        '200':
+          description: Chaves cadastradas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PixKey'
+              example:
+                data:
+                  - id: pk_11223344-5566-4778-8990-aabbccddeeff
+                    type: email
+                    value: ana.souza@example.com
+                    wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                    status: active
+                    created_at: "2026-08-24T15:30:00Z"
+                  - id: pk_99887766-5544-4332-8110-ffeeddccbbaa
+                    type: random
+                    value: 7a1c3e5f-9b2d-4e6a-8c0f-1d3b5a7c9e2f
+                    wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                    status: active
+                    created_at: "2026-08-24T15:31:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Pix]
+      summary: Cadastra uma chave Pix
+      operationId: createPixKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, wallet_id]
+              properties:
+                type:
+                  type: string
+                  enum: [cpf, cnpj, email, phone, random]
+                value:
+                  type: string
+                  description: Obrigatório exceto para `random`.
+                wallet_id:
+                  type: string
+                  format: uuid
+            example:
+              type: email
+              value: ana.souza@example.com
+              wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+      responses:
+        '201':
+          description: Chave cadastrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixKey'
+              example:
+                id: pk_11223344-5566-4778-8990-aabbccddeeff
+                type: email
+                value: ana.souza@example.com
+                wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                status: active
+                created_at: "2026-08-24T15:30:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Chave já registrada (aqui ou em outra instituição)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: pix_key_taken
+                  message: Esta chave já está registrada em outra instituição. Solicite a portabilidade.
+                  details: []
+                  trace_id: 01J9X7QK3M2R6T
+        '422':
+          description: Limite de chaves atingido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: pix_key_limit_reached
+                  message: Limite de 5 chaves por pessoa física atingido.
+                  details: []
+                  trace_id: 01J9X7QK3M2R6T
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /pix/keys/{pixKeyId}:
+    parameters:
+      - name: pixKeyId
+        in: path
+        required: true
+        schema:
+          type: string
+        example: pk_11223344-5566-4778-8990-aabbccddeeff
+    delete:
+      tags: [Pix]
+      summary: Exclui uma chave Pix
+      operationId: deletePixKey
+      responses:
+        '204':
+          description: Chave excluída
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /pix/charges:
+    post:
+      tags: [Pix]
+      summary: Cria uma cobrança Pix (QR Code)
+      operationId: createPixCharge
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [wallet_id, amount]
+              properties:
+                wallet_id:
+                  type: string
+                  format: uuid
+                amount:
+                  type: integer
+                  description: Centavos. `0` = QR sem valor definido (pagador escolhe).
+                expires_in:
+                  type: integer
+                  description: Segundos até expirar.
+                  default: 3600
+                description:
+                  type: string
+            example:
+              wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+              amount: 32000
+              expires_in: 1800
+              description: Pedido #1042
+      responses:
+        '201':
+          description: Cobrança criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixCharge'
+              example:
+                id: chg_6f5e4d3c-2b1a-4098-8765-4321fedcba09
+                wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                amount: 32000
+                status: active
+                qr_code: "00020126580014BR.GOV.BCB.PIX0136a1b2c3d4-5e6f-7890-abcd-ef1234567890520400005303986540532.005802BR5909ANA SOUZA6008CURITIBA62070503***63041D3D"
+                qr_code_image_url: https://cdn.wallet.example.com/qr/chg_6f5e4d3c.png
+                description: Pedido #1042
+                expires_at: "2026-08-24T21:30:00Z"
+                paid_at: null
+                transaction_id: null
+                created_at: "2026-08-24T21:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /pix/charges/{chargeId}:
+    parameters:
+      - name: chargeId
+        in: path
+        required: true
+        schema:
+          type: string
+        example: chg_6f5e4d3c-2b1a-4098-8765-4321fedcba09
+    get:
+      tags: [Pix]
+      summary: Consulta uma cobrança Pix
+      operationId: getPixCharge
+      responses:
+        '200':
+          description: Cobrança
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixCharge'
+              example:
+                id: chg_6f5e4d3c-2b1a-4098-8765-4321fedcba09
+                wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                amount: 32000
+                status: paid
+                qr_code: "00020126580014BR.GOV.BCB.PIX0136a1b2c3d4"
+                qr_code_image_url: https://cdn.wallet.example.com/qr/chg_6f5e4d3c.png
+                description: Pedido #1042
+                expires_at: "2026-08-24T21:30:00Z"
+                paid_at: "2026-08-24T21:12:47Z"
+                transaction_id: 2e4f6a8c-0b1d-4c3e-9a5f-7b8d9e0f1a2b
+                created_at: "2026-08-24T21:00:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Pix]
+      summary: Cancela uma cobrança Pix
+      operationId: cancelPixCharge
+      responses:
+        '204':
+          description: Cobrança cancelada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Cobrança já paga ou expirada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: charge_not_cancelable
+                  message: Cobrança já foi paga.
+                  details:
+                    - field: status
+                      issue: paid
+                  trace_id: 01J9X7QK3M2R6T
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /pix/payments:
+    post:
+      tags: [Pix]
+      summary: Paga via Pix (chave ou copia-e-cola)
+      description: Informe `pix_key` **ou** `qr_code`. Se ambos vierem, a requisição é rejeitada.
+      operationId: createPixPayment
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PixPaymentRequest'
+            examples:
+              porChave:
+                summary: Pagamento por chave
+                value:
+                  source_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                  pix_key: bruno.lima@example.com
+                  amount: 32000
+                  description: Pedido #1042
+              porQrCode:
+                summary: Pagamento por copia-e-cola
+                value:
+                  source_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                  qr_code: "00020126580014BR.GOV.BCB.PIX0136a1b2c3d4"
+      responses:
+        '201':
+          description: Pagamento efetuado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+              example:
+                id: 2e4f6a8c-0b1d-4c3e-9a5f-7b8d9e0f1a2b
+                type: pix_out
+                status: completed
+                amount: 32000
+                fee: 0
+                net_amount: 32000
+                currency: BRL
+                source_wallet_id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+                destination_wallet_id: null
+                description: Pedido #1042
+                metadata:
+                  end_to_end_id: E1234567820260824211247abcdef0123
+                  counterparty_name: Bruno Lima
+                  counterparty_bank: Nubank
+                  pix_key: bruno.lima@example.com
+                idempotency_key: pix_2026-08-24_ana_003
+                created_at: "2026-08-24T21:12:47Z"
+                completed_at: "2026-08-24T21:12:48Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Limite excedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: limit_exceeded
+                  message: Valor excede o limite Pix noturno.
+                  details:
+                    - field: amount
+                      issue: "limite: 100000"
+                  trace_id: 01J9X7QK3M2R6T
+        '404':
+          description: Chave Pix inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: pix_key_not_found
+                  message: Chave Pix não encontrada no DICT.
+                  details: []
+                  trace_id: 01J9X7QK3M2R6T
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '422':
+          $ref: '#/components/responses/InsufficientFunds'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ────────────────────── BENEFICIARIES ──────────────────────
+
+  /beneficiaries:
+    get:
+      tags: [Beneficiaries]
+      summary: Lista favorecidos
+      operationId: listBeneficiaries
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          example: bruno
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Beneficiary'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                data:
+                  - id: ben_a1b2c3d4-e5f6-4718-9a0b-1c2d3e4f5a6b
+                    nickname: Bruno (aluguel)
+                    full_name: Bruno Lima
+                    document_masked: "***.456.789-**"
+                    pix_key: bruno.lima@example.com
+                    bank_code: "260"
+                    is_favorite: true
+                    created_at: "2026-08-20T09:00:00Z"
+                pagination:
+                  next_cursor: null
+                  has_more: false
+                  limit: 20
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Beneficiaries]
+      summary: Cria um favorecido
+      operationId: createBeneficiary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nickname]
+              properties:
+                nickname:
+                  type: string
+                pix_key:
+                  type: string
+                bank_code:
+                  type: string
+                agency:
+                  type: string
+                account_number:
+                  type: string
+                is_favorite:
+                  type: boolean
+            example:
+              nickname: Bruno (aluguel)
+              pix_key: bruno.lima@example.com
+              is_favorite: true
+      responses:
+        '201':
+          description: Favorecido criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beneficiary'
+              example:
+                id: ben_a1b2c3d4-e5f6-4718-9a0b-1c2d3e4f5a6b
+                nickname: Bruno (aluguel)
+                full_name: Bruno Lima
+                document_masked: "***.456.789-**"
+                pix_key: bruno.lima@example.com
+                bank_code: "260"
+                is_favorite: true
+                created_at: "2026-08-20T09:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /beneficiaries/{beneficiaryId}:
+    parameters:
+      - name: beneficiaryId
+        in: path
+        required: true
+        schema:
+          type: string
+        example: ben_a1b2c3d4-e5f6-4718-9a0b-1c2d3e4f5a6b
+    patch:
+      tags: [Beneficiaries]
+      summary: Atualiza um favorecido
+      operationId: updateBeneficiary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname:
+                  type: string
+                is_favorite:
+                  type: boolean
+            example:
+              nickname: Bruno Lima - aluguel
+              is_favorite: false
+      responses:
+        '200':
+          description: Atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beneficiary'
+              example:
+                id: ben_a1b2c3d4-e5f6-4718-9a0b-1c2d3e4f5a6b
+                nickname: Bruno Lima - aluguel
+                full_name: Bruno Lima
+                document_masked: "***.456.789-**"
+                pix_key: bruno.lima@example.com
+                bank_code: "260"
+                is_favorite: false
+                created_at: "2026-08-20T09:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Beneficiaries]
+      summary: Remove um favorecido
+      operationId: deleteBeneficiary
+      responses:
+        '204':
+          description: Removido
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ────────────────────────── WEBHOOKS ──────────────────────────
+
+  /webhooks/subscriptions:
+    get:
+      tags: [Webhooks]
+      summary: Lista assinaturas de webhook
+      operationId: listWebhooks
+      responses:
+        '200':
+          description: Assinaturas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookSubscription'
+              example:
+                data:
+                  - id: wh_0f1e2d3c-4b5a-4697-8887-776655443322
+                    url: https://meuapp.example.com/hooks/wallet
+                    events:
+                      - transaction.completed
+                      - transaction.failed
+                      - deposit.confirmed
+                    status: active
+                    secret_masked: whsec_****9f2c
+                    created_at: "2026-08-24T16:45:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Webhooks]
+      summary: Cria uma assinatura de webhook
+      description: |
+        O `secret` é retornado **uma única vez** na criação. Toda entrega leva o header
+        `X-Wallet-Signature: t=<timestamp>,v1=<hmac_sha256>`. Valide sempre antes de processar.
+        Retry: 5 tentativas com backoff exponencial (1m, 5m, 30m, 2h, 12h).
+      operationId: createWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url, events]
+              properties:
+                url:
+                  type: string
+                  format: uri
+                events:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - transaction.created
+                      - transaction.completed
+                      - transaction.failed
+                      - transaction.reversed
+                      - deposit.confirmed
+                      - withdrawal.settled
+                      - pix.charge.paid
+                      - kyc.updated
+            example:
+              url: https://meuapp.example.com/hooks/wallet
+              events:
+                - transaction.completed
+                - deposit.confirmed
+      responses:
+        '201':
+          description: Assinatura criada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/WebhookSubscription'
+                  - type: object
+                    properties:
+                      secret:
+                        type: string
+                        description: Exibido apenas nesta resposta.
+              example:
+                id: wh_0f1e2d3c-4b5a-4697-8887-776655443322
+                url: https://meuapp.example.com/hooks/wallet
+                events:
+                  - transaction.completed
+                  - deposit.confirmed
+                status: active
+                secret: whsec_3a7f9b2c1d4e6f8a0b2c4d6e8f0a2b4c9f2c
+                secret_masked: whsec_****9f2c
+                created_at: "2026-08-24T16:45:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: URL inválida ou não HTTPS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: invalid_webhook_url
+                  message: A URL do webhook precisa usar HTTPS.
+                  details:
+                    - field: url
+                      issue: "esquema http não permitido"
+                  trace_id: 01J9X7QK3M2R6T
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /webhooks/subscriptions/{webhookId}:
+    parameters:
+      - name: webhookId
+        in: path
+        required: true
+        schema:
+          type: string
+        example: wh_0f1e2d3c-4b5a-4697-8887-776655443322
+    delete:
+      tags: [Webhooks]
+      summary: Remove uma assinatura de webhook
+      operationId: deleteWebhook
+      responses:
+        '204':
+          description: Removida
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+# ═════════════════════════ COMPONENTS ═════════════════════════
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Envie: `Authorization: Bearer <access_token>`. TTL de 15 minutos."
+
+  parameters:
+
+    WalletId:
+      name: walletId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Chave única por operação. Reenvio com a mesma chave devolve a resposta original.
+      schema:
+        type: string
+        maxLength: 64
+      example: trf_2026-08-24_ana_007
+
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      description: Lock otimista. Use o `version` atual do recurso.
+      schema:
+        type: string
+      example: "12"
+
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      example: 20
+
+    Cursor:
+      name: cursor
+      in: query
+      description: Cursor opaco devolvido em `pagination.next_cursor`.
+      schema:
+        type: string
+      example: eyJpZCI6IjVkNGMzYjJhIn0
+
+  responses:
+
+    BadRequest:
+      description: Requisição malformada
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: bad_request
+              message: O corpo da requisição é inválido.
+              details:
+                - field: amount
+                  issue: "deve ser um inteiro positivo em centavos"
+              trace_id: 01J9X7QK3M2R6T
+
+    Unauthorized:
+      description: Token ausente, inválido ou expirado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: unauthorized
+              message: Token de acesso expirado.
+              details: []
+              trace_id: 01J9X7QK3M2R6T
+
+    Forbidden:
+      description: Sem permissão sobre o recurso
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: forbidden
+              message: Você não tem permissão para acessar esta carteira.
+              details: []
+              trace_id: 01J9X7QK3M2R6T
+
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: not_found
+              message: Recurso não encontrado.
+              details: []
+              trace_id: 01J9X7QK3M2R6T
+
+    Conflict:
+      description: Conflito de estado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: conflict
+              message: O recurso está em um estado que não permite esta operação.
+              details: []
+              trace_id: 01J9X7QK3M2R6T
+
+    IdempotencyConflict:
+      description: Idempotency-Key reutilizada com payload diferente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: idempotency_key_reuse
+              message: Esta Idempotency-Key já foi usada com um payload diferente.
+              details:
+                - field: Idempotency-Key
+                  issue: trf_2026-08-24_ana_007
+              trace_id: 01J9X7QK3M2R6T
+
+    InsufficientFunds:
+      description: Saldo insuficiente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: insufficient_funds
+              message: Saldo insuficiente para concluir a operação.
+              details:
+                - field: amount
+                  issue: "solicitado: 75000, disponível: 52340"
+              trace_id: 01J9X7QK3M2R6T
+
+    UnprocessableEntity:
+      description: Semanticamente inválido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: validation_failed
+              message: Não foi possível processar os dados enviados.
+              details:
+                - field: document
+                  issue: "CPF inválido"
+              trace_id: 01J9X7QK3M2R6T
+
+    TooManyRequests:
+      description: Rate limit excedido
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Segundos até liberar.
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: rate_limit_exceeded
+              message: Muitas requisições. Tente novamente em instantes.
+              details:
+                - field: retry_after
+                  issue: "30"
+              trace_id: 01J9X7QK3M2R6T
+
+    InternalError:
+      description: Erro interno
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: internal_error
+              message: Erro inesperado. Nossa equipe foi notificada.
+              details: []
+              trace_id: 01J9X7QK3M2R6T
+
+  schemas:
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Código estável, legível por máquina.
+              example: insufficient_funds
+            message:
+              type: string
+              description: Mensagem legível por humano (pode mudar).
+              example: Saldo insuficiente para concluir a operação.
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  issue:
+                    type: string
+            trace_id:
+              type: string
+              description: Use no suporte para rastrear a requisição.
+              example: 01J9X7QK3M2R6T
+
+    Pagination:
+      type: object
+      properties:
+        next_cursor:
+          type: string
+          nullable: true
+          example: eyJpZCI6IjVkNGMzYjJhIn0
+        has_more:
+          type: boolean
+          example: true
+        limit:
+          type: integer
+          example: 20
+
+    RegisterRequest:
+      type: object
+      required: [full_name, email, document, password]
+      properties:
+        full_name:
+          type: string
+          minLength: 3
+          example: Ana Souza
+        email:
+          type: string
+          format: email
+          example: ana.souza@example.com
+        document:
+          type: string
+          description: CPF ou CNPJ, apenas dígitos.
+          example: "39053344705"
+        phone:
+          type: string
+          example: "+5541999998888"
+        password:
+          type: string
+          format: password
+          minLength: 10
+          example: "S3nh@ForteAqui"
+        birth_date:
+          type: string
+          format: date
+          example: "1993-04-17"
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        device_id:
+          type: string
+
+    TokenPair:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          description: Segundos de validade do access token.
+          example: 900
+
+    AuthSession:
+      allOf:
+        - $ref: '#/components/schemas/TokenPair'
+        - type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        document_masked:
+          type: string
+          description: CPF/CNPJ sempre mascarado na saída.
+          example: "390.***.***-05"
+        phone:
+          type: string
+        status:
+          type: string
+          enum: [active, blocked, closing, closed]
+        kyc_status:
+          type: string
+          enum: [pending, in_review, approved, rejected]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        password:
+          type: string
+          format: password
+        current_password:
+          type: string
+          format: password
+          description: Obrigatório ao alterar `password` ou `email`.
+
+    Kyc:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, in_review, approved, rejected]
+        level:
+          type: integer
+          description: 0 = não verificado, 1 = básico, 2 = completo.
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+        rejection_reason:
+          type: string
+          nullable: true
+        limits:
+          type: object
+          properties:
+            daily_transfer_limit:
+              type: integer
+            nightly_transfer_limit:
+              type: integer
+
+    Wallet:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        alias:
+          type: string
+        currency:
+          type: string
+          example: BRL
+        available_balance:
+          type: integer
+          description: Centavos disponíveis para uso.
+        blocked_balance:
+          type: integer
+          description: Centavos retidos (cautelar, saque em curso).
+        total_balance:
+          type: integer
+        is_default:
+          type: boolean
+        status:
+          type: string
+          enum: [active, frozen, closed]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+
+    CreateWalletRequest:
+      type: object
+      required: [alias, currency]
+      properties:
+        alias:
+          type: string
+          maxLength: 40
+        currency:
+          type: string
+          enum: [BRL, USD, EUR]
+        is_default:
+          type: boolean
+          default: false
+
+    UpdateWalletRequest:
+      type: object
+      properties:
+        alias:
+          type: string
+          maxLength: 40
+        is_default:
+          type: boolean
+        status:
+          type: string
+          enum: [active, frozen]
+
+    Balance:
+      type: object
+      properties:
+        wallet_id:
+          type: string
+          format: uuid
+        currency:
+          type: string
+        available_balance:
+          type: integer
+        blocked_balance:
+          type: integer
+        pending_credits:
+          type: integer
+          description: Créditos aguardando compensação (não somados ao total).
+        total_balance:
+          type: integer
+        updated_at:
+          type: string
+          format: date-time
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [deposit, withdrawal, transfer, pix_in, pix_out, reversal, fee]
+        status:
+          type: string
+          enum: [pending, processing, completed, failed, reversed, canceled]
+        amount:
+          type: integer
+          description: Valor bruto em centavos.
+        fee:
+          type: integer
+        net_amount:
+          type: integer
+        currency:
+          type: string
+        source_wallet_id:
+          type: string
+          format: uuid
+          nullable: true
+        destination_wallet_id:
+          type: string
+          format: uuid
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+        idempotency_key:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    StatementEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        transaction_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          example: transfer_in
+        direction:
+          type: string
+          enum: [credit, debit]
+        amount:
+          type: integer
+        balance_after:
+          type: integer
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    DepositRequest:
+      type: object
+      required: [amount, method]
+      properties:
+        amount:
+          type: integer
+          minimum: 100
+        method:
+          type: string
+          enum: [pix, card, boleto]
+        payment_method_id:
+          type: string
+          nullable: true
+          description: Obrigatório quando `method = card`.
+        description:
+          type: string
+
+    WithdrawalRequest:
+      type: object
+      required: [amount, payment_method_id]
+      properties:
+        amount:
+          type: integer
+          minimum: 100
+        payment_method_id:
+          type: string
+        description:
+          type: string
+
+    TransferRequest:
+      type: object
+      required: [source_wallet_id, amount]
+      properties:
+        source_wallet_id:
+          type: string
+          format: uuid
+        destination_wallet_id:
+          type: string
+          format: uuid
+        destination_email:
+          type: string
+          format: email
+        destination_document:
+          type: string
+        amount:
+          type: integer
+          minimum: 1
+        description:
+          type: string
+          maxLength: 140
+        scheduled_for:
+          type: string
+          format: date-time
+          nullable: true
+          description: Se preenchido, a transação nasce `pending` e executa na data.
+
+    PixPaymentRequest:
+      type: object
+      required: [source_wallet_id]
+      properties:
+        source_wallet_id:
+          type: string
+          format: uuid
+        pix_key:
+          type: string
+        qr_code:
+          type: string
+          description: Payload copia-e-cola (EMV).
+        amount:
+          type: integer
+          description: Obrigatório com `pix_key`; opcional com QR de valor fixo.
+        description:
+          type: string
+          maxLength: 140
+
+    PixKey:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [cpf, cnpj, email, phone, random]
+        value:
+          type: string
+        wallet_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [active, pending_portability, inactive]
+        created_at:
+          type: string
+          format: date-time
+
+    PixCharge:
+      type: object
+      properties:
+        id:
+          type: string
+        wallet_id:
+          type: string
+          format: uuid
+        amount:
+          type: integer
+        status:
+          type: string
+          enum: [active, paid, expired, canceled]
+        qr_code:
+          type: string
+        qr_code_image_url:
+          type: string
+          format: uri
+        description:
+          type: string
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        transaction_id:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    PaymentMethod:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [card, bank_account]
+        is_default:
+          type: boolean
+        status:
+          type: string
+          enum: [pending_verification, verified, rejected, expired]
+        bank_account:
+          nullable: true
+          type: object
+          properties:
+            bank_code:
+              type: string
+            bank_name:
+              type: string
+            agency:
+              type: string
+            account_masked:
+              type: string
+            account_type:
+              type: string
+              enum: [checking, savings]
+            holder_document_masked:
+              type: string
+        card:
+          nullable: true
+          type: object
+          properties:
+            brand:
+              type: string
+              example: visa
+            last4:
+              type: string
+              example: "4242"
+            exp_month:
+              type: integer
+            exp_year:
+              type: integer
+            holder_name:
+              type: string
+        created_at:
+          type: string
+          format: date-time
+
+    CreatePaymentMethodRequest:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [card, bank_account]
+        is_default:
+          type: boolean
+          default: false
+        card_token:
+          type: string
+          description: Token do gateway. Nunca envie PAN, CVV ou validade em claro.
+        bank_account:
+          type: object
+          properties:
+            bank_code:
+              type: string
+            agency:
+              type: string
+            account_number:
+              type: string
+            account_digit:
+              type: string
+            account_type:
+              type: string
+              enum: [checking, savings]
+
+    Beneficiary:
+      type: object
+      properties:
+        id:
+          type: string
+        nickname:
+          type: string
+        full_name:
+          type: string
+        document_masked:
+          type: string
+        pix_key:
+          type: string
+          nullable: true
+        bank_code:
+          type: string
+          nullable: true
+        is_favorite:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    WebhookSubscription:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, disabled]
+        secret_masked:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+```
