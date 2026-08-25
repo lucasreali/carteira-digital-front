@@ -1,0 +1,4 @@
+- Lucas Arthur da Silva Reali
+- Gabriel João Conti
+- Thiago Akimoto
+- Guilherme Celi Fadel
