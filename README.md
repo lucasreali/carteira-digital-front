@@ -5,6 +5,13 @@ withdrawals, internal transfers, Pix, payment methods and statements.
 
 The UI is written in Brazilian Portuguese; code, comments and docs are in English.
 
+## Live demo
+
+<https://black-pond-0b0651a10.7.azurestaticapps.net>
+
+The deployed build is a static SPA on Azure Static Web Apps with no backend attached, so
+it runs entirely on the in-memory mock and the demo accounts below work as they are.
+
 ## Stack
 
 | Concern | Choice |
@@ -26,12 +33,18 @@ pnpm dev
 The app starts on <http://localhost:3001> — port 3000 is left free for the API,
 which the OpenAPI document places at `http://localhost:3000/v1` locally.
 
-With the mock enabled (the default in `.env.example`), sign in with the seeded demo user:
+## Demo accounts
 
-```
-ana.souza@example.com
-S3nh@ForteAqui
-```
+With the mock enabled (the default in `.env.example`, and what the live demo runs), sign
+in with either seeded user:
+
+| Name | E-mail | Password |
+| --- | --- | --- |
+| Ana Souza | `ana.souza@example.com` | `S3nh@ForteAqui` |
+| Bruno Lima | `bruno.lima@example.com` | `S3nh@ForteAqui` |
+
+Both start `active` with KYC approved and seeded wallets, so transfers between them
+exercise the whole flow.
 
 ## Environment
 
