@@ -19,8 +19,8 @@ export const Route = createFileRoute("/_auth/entrar")({
 });
 
 const demoCredentials = {
-	email: "ana.souza@example.com",
-	password: "S3nh@ForteAqui",
+	email: "teste@mail.com",
+	password: "1234",
 };
 
 function LoginScreen() {

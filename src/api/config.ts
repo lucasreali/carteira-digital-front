@@ -1,6 +1,6 @@
 // Mock server do contrato publicado no Apidog: responde as rotas do OpenAPI
 // direto na raiz, sem o prefixo /v1 dos servidores reais.
-export const apiBaseUrl = "https://mock.apidog.com/m1/1365799-1370039-1426618";
+export const apiBaseUrl = "https://mock.apidog.com/m1/1365799-1370039-1432203";
 
 // Acesso estático (e não por chave dinâmica) para que o Vite substitua o valor
 // em tempo de build: é o que permite eliminar o mock do bundle de produção.
