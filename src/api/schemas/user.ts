@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { Document } from "@/domain/document";
 import { Phone } from "@/domain/phone";
+import { idField } from "./common";
 
 // Espelha o `minLength` de `RegisterRequest.password` no contrato OpenAPI.
 export const minPasswordLength = 4;
@@ -20,7 +21,7 @@ export const kycStatusSchema = z.enum([
 ]);
 
 export const userSchema = z.object({
-	id: z.uuid(),
+	id: idField,
 	full_name: z.string(),
 	email: z.email(),
 	document_masked: z.string(),

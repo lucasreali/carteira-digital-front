@@ -1,11 +1,13 @@
 import { z } from "zod";
 
+import { idField } from "./common";
+
 export const currencySchema = z.enum(["BRL", "USD", "EUR"]);
 export const walletStatusSchema = z.enum(["active", "frozen", "closed"]);
 
 export const walletSchema = z.object({
-	id: z.uuid(),
-	user_id: z.uuid(),
+	id: idField,
+	user_id: idField,
 	alias: z.string(),
 	currency: z.string(),
 	available_balance: z.number().int(),
@@ -21,7 +23,7 @@ export const walletSchema = z.object({
 export type Wallet = z.infer<typeof walletSchema>;
 
 export const balanceSchema = z.object({
-	wallet_id: z.uuid(),
+	wallet_id: idField,
 	currency: z.string(),
 	available_balance: z.number().int(),
 	blocked_balance: z.number().int(),

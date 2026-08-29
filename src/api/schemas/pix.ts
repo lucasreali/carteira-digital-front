@@ -3,7 +3,7 @@ import { z } from "zod";
 import { Document } from "@/domain/document";
 import { Money } from "@/domain/money";
 import { Phone } from "@/domain/phone";
-import { optionalText } from "./common";
+import { idField, optionalText } from "./common";
 
 export const pixKeyTypeSchema = z.enum([
 	"cpf",
@@ -22,7 +22,7 @@ export const pixKeySchema = z.object({
 	id: z.string(),
 	type: pixKeyTypeSchema,
 	value: z.string(),
-	wallet_id: z.uuid(),
+	wallet_id: idField,
 	status: pixKeyStatusSchema,
 	created_at: z.string(),
 });
@@ -38,7 +38,7 @@ export const pixChargeStatusSchema = z.enum([
 
 export const pixChargeSchema = z.object({
 	id: z.string(),
-	wallet_id: z.uuid(),
+	wallet_id: idField,
 	amount: z.number().int(),
 	status: pixChargeStatusSchema,
 	qr_code: z.string(),
@@ -46,7 +46,7 @@ export const pixChargeSchema = z.object({
 	description: z.string().nullable(),
 	expires_at: z.string(),
 	paid_at: z.string().nullable(),
-	transaction_id: z.uuid().nullable(),
+	transaction_id: idField.nullable(),
 	created_at: z.string(),
 });
 
@@ -68,7 +68,7 @@ export const createPixKeyFormSchema = z
 	.object({
 		type: pixKeyTypeSchema,
 		value: z.string().trim(),
-		wallet_id: z.uuid("Selecione a carteira"),
+		wallet_id: z.string().min(1, "Selecione a carteira"),
 	})
 	.superRefine((values, ctx) => {
 		if (values.type === "random") return;
@@ -95,7 +95,7 @@ const oneHourInSeconds = 3600;
 
 export const createPixChargeFormSchema = z
 	.object({
-		wallet_id: z.uuid("Selecione a carteira"),
+		wallet_id: z.string().min(1, "Selecione a carteira"),
 		amount: z.string().trim().default(""),
 		expires_in: z.coerce
 			.number()
@@ -127,7 +127,7 @@ export const pixPaymentModeSchema = z.enum(["key", "qr_code"]);
 
 export const pixPaymentFormSchema = z
 	.object({
-		source_wallet_id: z.uuid("Selecione a carteira de origem"),
+		source_wallet_id: z.string().min(1, "Selecione a carteira de origem"),
 		mode: pixPaymentModeSchema,
 		pix_key: z.string().trim().default(""),
 		qr_code: z.string().trim().default(""),

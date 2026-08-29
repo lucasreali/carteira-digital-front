@@ -2,6 +2,11 @@ import { z } from "zod";
 
 import { Money } from "@/domain/money";
 
+// O contrato declara os identificadores como UUID, mas o mock que responde ao
+// app publicado gera valores aleatórios fora desse formato. A resposta valida a
+// forma; conferir o formato é responsabilidade do servidor real.
+export const idField = z.string();
+
 export const paginationSchema = z.object({
 	next_cursor: z.string().nullable(),
 	has_more: z.boolean(),

@@ -105,9 +105,13 @@ helpers, `router.ts` a small method+pattern matcher.
 
 With the flag off (the default) requests go to the Apidog mock server of the published
 contract, hardcoded in `src/api/config.ts`; it serves the OpenAPI routes at its root
-without the `/v1` prefix. The dashboard additionally calls a standalone Azure Function
-(`statusFunctionUrl`, plain text, no auth) outside the `request` client — it needs the
-app origin allowed in the Function App's CORS settings.
+without the `/v1` prefix. That mock answers every request with randomly generated
+data, so response schemas validate shape only: identifiers use `idField`
+(`src/api/schemas/common.ts`), a plain string, instead of `z.uuid()`, and the wallet
+selects in the form schemas require a non-empty id rather than a UUID. The dashboard
+additionally calls a standalone Azure Function (`statusFunctionUrl`, plain text, no
+auth) outside the `request` client — it needs the app origin allowed in the Function
+App's CORS settings.
 
 ## Conventions
 

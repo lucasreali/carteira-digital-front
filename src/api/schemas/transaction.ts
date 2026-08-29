@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { Document } from "@/domain/document";
-import { centsField, optionalText } from "./common";
+import { centsField, idField, optionalText } from "./common";
 
 export const transactionTypeSchema = z.enum([
 	"deposit",
@@ -26,15 +26,15 @@ export type TransactionType = z.infer<typeof transactionTypeSchema>;
 export type TransactionStatus = z.infer<typeof transactionStatusSchema>;
 
 export const transactionSchema = z.object({
-	id: z.uuid(),
+	id: idField,
 	type: transactionTypeSchema,
 	status: transactionStatusSchema,
 	amount: z.number().int(),
 	fee: z.number().int(),
 	net_amount: z.number().int(),
 	currency: z.string(),
-	source_wallet_id: z.uuid().nullable(),
-	destination_wallet_id: z.uuid().nullable(),
+	source_wallet_id: idField.nullable(),
+	destination_wallet_id: idField.nullable(),
 	description: z.string().nullable(),
 	metadata: z.record(z.string(), z.unknown()).default({}),
 	idempotency_key: z.string().nullable(),
@@ -45,8 +45,8 @@ export const transactionSchema = z.object({
 export type Transaction = z.infer<typeof transactionSchema>;
 
 export const statementEntrySchema = z.object({
-	id: z.uuid(),
-	transaction_id: z.uuid(),
+	id: idField,
+	transaction_id: idField,
 	type: z.string(),
 	direction: z.enum(["credit", "debit"]),
 	amount: z.number().int(),
@@ -58,7 +58,7 @@ export const statementEntrySchema = z.object({
 export type StatementEntry = z.infer<typeof statementEntrySchema>;
 
 export const statementSchema = z.object({
-	wallet_id: z.uuid(),
+	wallet_id: idField,
 	opening_balance: z.number().int(),
 	closing_balance: z.number().int(),
 	data: z.array(statementEntrySchema),
@@ -75,7 +75,7 @@ export const depositMethodSchema = z.enum(["pix", "card", "boleto"]);
 
 export const depositFormSchema = z
 	.object({
-		wallet_id: z.uuid("Selecione a carteira"),
+		wallet_id: z.string().min(1, "Selecione a carteira"),
 		amount: centsField(MINIMUM_MOVEMENT_CENTS),
 		method: depositMethodSchema,
 		payment_method_id: z.string().optional(),
@@ -92,7 +92,7 @@ export const depositFormSchema = z
 export type DepositForm = z.input<typeof depositFormSchema>;
 
 export const withdrawalFormSchema = z.object({
-	wallet_id: z.uuid("Selecione a carteira"),
+	wallet_id: z.string().min(1, "Selecione a carteira"),
 	amount: centsField(MINIMUM_MOVEMENT_CENTS),
 	payment_method_id: z.string().min(1, "Selecione a conta de destino"),
 	description: optionalText(140),
@@ -104,7 +104,7 @@ export const transferTargetSchema = z.enum(["wallet", "email", "document"]);
 
 export const transferFormSchema = z
 	.object({
-		source_wallet_id: z.uuid("Selecione a carteira de origem"),
+		source_wallet_id: z.string().min(1, "Selecione a carteira de origem"),
 		target: transferTargetSchema,
 		destination_wallet_id: z.string().default(""),
 		destination_email: z.string().trim().default(""),
