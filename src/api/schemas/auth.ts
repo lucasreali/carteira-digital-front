@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { Phone } from "@/domain/phone";
-import { documentField, userSchema } from "./user";
+import { documentField, minPasswordLength, userSchema } from "./user";
 
 export const tokenPairSchema = z.object({
 	access_token: z.string(),
@@ -23,12 +23,9 @@ export type LoginForm = z.infer<typeof loginFormSchema>;
 
 const passwordField = z
 	.string()
-	.min(10, "A senha precisa ter ao menos 10 caracteres")
-	.refine((value) => /[A-Za-z]/.test(value), "Inclua ao menos uma letra")
-	.refine((value) => /\d/.test(value), "Inclua ao menos um número")
-	.refine(
-		(value) => /[^A-Za-z0-9]/.test(value),
-		"Inclua ao menos um caractere especial",
+	.min(
+		minPasswordLength,
+		`A senha precisa ter ao menos ${minPasswordLength} caracteres`,
 	);
 
 const legalAgeInYears = 18;

@@ -3,6 +3,9 @@ import { z } from "zod";
 import { Document } from "@/domain/document";
 import { Phone } from "@/domain/phone";
 
+// Espelha o `minLength` de `RegisterRequest.password` no contrato OpenAPI.
+export const minPasswordLength = 4;
+
 export const userStatusSchema = z.enum([
 	"active",
 	"blocked",
@@ -76,7 +79,10 @@ export const changePasswordFormSchema = z
 		current_password: z.string().min(1, "Informe a senha atual"),
 		password: z
 			.string()
-			.min(10, "A nova senha precisa ter ao menos 10 caracteres"),
+			.min(
+				minPasswordLength,
+				`A nova senha precisa ter ao menos ${minPasswordLength} caracteres`,
+			),
 		password_confirmation: z.string().min(1, "Confirme a nova senha"),
 	})
 	.refine((values) => values.password === values.password_confirmation, {

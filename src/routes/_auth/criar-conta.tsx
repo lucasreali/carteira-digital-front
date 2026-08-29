@@ -182,7 +182,7 @@ function RegisterScreen() {
 						label="Senha"
 						htmlFor="password"
 						error={errors.password?.message}
-						description="Mínimo de 10 caracteres, com letra, número e caractere especial."
+						description="Mínimo de 4 caracteres."
 					>
 						<Input
 							id="password"

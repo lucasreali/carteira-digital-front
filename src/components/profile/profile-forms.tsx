@@ -230,7 +230,7 @@ export function ChangePasswordForm({ user }: { user: User }) {
 		<Card>
 			<CardHeader>
 				<CardTitle>Senha</CardTitle>
-				<CardDescription>Mínimo de 10 caracteres.</CardDescription>
+				<CardDescription>Mínimo de 4 caracteres.</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<form onSubmit={submit} noValidate>
