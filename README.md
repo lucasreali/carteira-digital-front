@@ -36,15 +36,41 @@ local API is needed.
 
 ## Demo accounts
 
-With `VITE_ENABLE_MOCK_API=true`, sign in with either seeded user:
-
 | Name | E-mail | Password |
 | --- | --- | --- |
-| Ana Souza | `ana.souza@example.com` | `S3nh@ForteAqui` |
-| Bruno Lima | `bruno.lima@example.com` | `S3nh@ForteAqui` |
+| Ana Souza | `teste@mail.com` | `1234` |
+| Bruno Lima | `bruno.lima@example.com` | `1234` |
 
 Both start `active` with KYC approved and seeded wallets, so transfers between them
 exercise the whole flow.
+
+`teste@mail.com` is also the account the OpenAPI examples describe, so the same
+credentials work against the Apidog mock server and against the in-memory mock
+(`VITE_ENABLE_MOCK_API=true`). Bruno only exists in the in-memory mock — in the
+contract he appears solely as a counterparty, never as the authenticated user.
+
+## API contract
+
+`Digital Wallet API.openapi.json` is the source of truth for the mock server. Every
+example in it is derived from one seeded dataset, so the responses reconcile with each
+other rather than being independently plausible:
+
+- `POST /auth/login`, `POST /auth/register` and `GET /users/me` return the same
+  `user.id`, and the `sub`/`email` claims of the example JWT match it.
+- `total_balance` equals `available_balance + blocked_balance`, and the statement's
+  `closing_balance` equals the wallet's `total_balance`.
+- Replaying the statement entries from `opening_balance` reproduces every
+  `balance_after` and lands on the closing balance.
+- `blocked_balance` is the sum of the withdrawals still `processing`, and
+  `pending_credits` the sum of the deposits still `pending`; neither appears in the
+  statement, which only lists settled movements.
+- Each money-moving route's `Idempotency-Key` example matches the `idempotency_key`
+  in the response body it documents.
+- Every transaction referenced from a statement entry, a Pix charge, a reversal or a
+  `409` error exists in `GET /transactions` with the same body.
+
+`info.description` carries the timeline those examples are cut from, so a reader can
+see the order events happened in.
 
 ## Environment
 
