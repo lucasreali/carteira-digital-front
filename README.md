@@ -30,13 +30,13 @@ pnpm install
 pnpm dev
 ```
 
-The app starts on <http://localhost:3001> — port 3000 is left free for the API,
-which the OpenAPI document places at `http://localhost:3000/v1` locally.
+The app starts on <http://localhost:3001>. Every request goes to the mock server of
+the published contract at <https://mock.apidog.com/m1/1365799-1370039-1426618>, so no
+local API is needed.
 
 ## Demo accounts
 
-With the mock enabled (the default in `.env.example`, and what the live demo runs), sign
-in with either seeded user:
+With `VITE_ENABLE_MOCK_API=true`, sign in with either seeded user:
 
 | Name | E-mail | Password |
 | --- | --- | --- |
@@ -52,20 +52,22 @@ Copy `.env.example` to `.env` and adjust:
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `VITE_API_URL` | `http://localhost:3000/v1` | Base URL of the wallet API |
-| `VITE_ENABLE_MOCK_API` | `true` | Serve `VITE_API_URL` from the in-memory mock |
+| `VITE_ENABLE_MOCK_API` | `false` | Serve the API from the in-memory mock instead |
 
-While the mock is enabled, `globalThis.fetch` is intercepted for requests that target
-`VITE_API_URL` and answered by `src/api/mock`, which implements every operation in the
+The base URL is fixed in `src/api/config.ts`, pointing at the Apidog mock server of the
+contract — it answers the OpenAPI routes at its root, without the `/v1` prefix the real
+servers use.
+
+With `VITE_ENABLE_MOCK_API=true`, `globalThis.fetch` is intercepted for requests that
+target that base URL and answered by `src/api/mock`, which implements every operation in the
 OpenAPI document — including idempotency replay, optimistic locking conflicts,
 insufficient-funds errors and asynchronous settlement (deposits confirm after a few
 seconds, Pix charges get paid, KYC is reviewed). State is persisted in `localStorage`,
 so a page reload keeps the data; clear the `carteira-digital:mock-db` key to reseed.
 
-Set `VITE_ENABLE_MOCK_API=false` to talk to the real API. No other change is needed —
-every screen goes through the same endpoint modules. Because the app and the API sit on
-different ports, the API must allow the app's origin via CORS (including the
-`Authorization`, `Idempotency-Key` and `If-Match` request headers).
+With the mock off — the default — every screen goes through the same endpoint modules
+against the remote base URL. Any API put behind it must allow the app's origin via CORS
+(including the `Authorization`, `Idempotency-Key` and `If-Match` request headers).
 
 ## Screens
 
