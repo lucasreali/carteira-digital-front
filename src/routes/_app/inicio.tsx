@@ -20,6 +20,7 @@ import {
 	ErrorState,
 	LoadingRows,
 } from "@/components/common/data-state";
+import { ServiceStatusCard } from "@/components/common/service-status-card";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import {
 	Alert,
@@ -268,6 +269,8 @@ function DashboardScreen() {
 					</Card>
 				)}
 			</section>
+
+			<ServiceStatusCard name={firstName} />
 		</div>
 	);
 }

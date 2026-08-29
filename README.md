@@ -69,6 +69,15 @@ With the mock off — the default — every screen goes through the same endpoin
 against the remote base URL. Any API put behind it must allow the app's origin via CORS
 (including the `Authorization`, `Idempotency-Key` and `If-Match` request headers).
 
+## Cloud function status
+
+The dashboard also calls a standalone Azure Function — `GET /api/getstatus?name=`, URL in
+`src/api/config.ts` — and renders its plain-text answer in the "Status do serviço" card.
+The function must allow the app's origin under **Function App → API → CORS**
+(`http://localhost:3001` for development and the Static Web Apps domain for the deployed
+build); without it the browser blocks the response and the card reports the function as
+unreachable.
+
 ## Screens
 
 | Route | Screen |
