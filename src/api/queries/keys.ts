@@ -18,6 +18,8 @@ export const queryKeys = {
 	beneficiaries: (search: string) => ["beneficiaries", "list", search] as const,
 	webhooks: ["webhooks", "list"] as const,
 	serviceStatus: (name: string) => ["service-status", name] as const,
+	functionUser: (userId: string) =>
+		["function-users", "detail", userId] as const,
 } as const;
 
 export const invalidationRoots = {
@@ -28,4 +30,5 @@ export const invalidationRoots = {
 	beneficiaries: ["beneficiaries"] as const,
 	webhooks: ["webhooks"] as const,
 	me: ["me"] as const,
+	functionUsers: ["function-users"] as const,
 };

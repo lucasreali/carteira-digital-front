@@ -104,6 +104,26 @@ The function must allow the app's origin under **Function App → API → CORS**
 build); without it the browser blocks the response and the card reports the function as
 unreachable.
 
+## Users API on Azure Functions
+
+`/usuarios` is a front end for a second, independent service: the *Carteira Digital -
+Users API*, a users CRUD running on Azure Functions over MongoDB Atlas (contract in
+`docs/users-function-openapi.json`, base URL in `src/api/config.ts`). It has its own contract — `nome`/`email` documents keyed by
+MongoDB `ObjectId`, and a single-field `{ "error": "..." }` failure envelope — so it goes
+through `src/api/function-http.ts` instead of the wallet client, and the screen exercises
+every operation in the document: `POST /users`, `GET`, `PUT`, `PATCH` and `DELETE` on
+`/users/{id}`.
+
+The contract has no list operation, so the screen keeps the ObjectIds it created or looked
+up in `localStorage` (`carteira-digital:function-user-ids`) and reads each one back with a
+`GET`. A side panel logs the last calls to the function — method, path, status and
+duration — as evidence of where the data comes from.
+
+This Function App needs the same **Function App → API → CORS** entries as the status
+function (`http://localhost:3001` and the Static Web Apps domain), plus a working MongoDB
+Atlas connection; without either, every card reports the function as unreachable or
+answers `500 Erro interno.`
+
 ## Screens
 
 | Route | Screen |
@@ -128,6 +148,7 @@ unreachable.
 | `/metodos-pagamento` | Linked cards and bank accounts |
 | `/metodos-pagamento/novo` | Link a bank account or a tokenized card |
 | `/favorecidos` | Saved beneficiaries with search and favorites |
+| `/usuarios` | Users CRUD on Azure Functions with the call log |
 | `/webhooks` | Webhook subscriptions with one-time secret reveal |
 | `/perfil` | Profile, e-mail, password, sessions and account closure |
 | `/perfil/kyc` | KYC status, limits and document upload |

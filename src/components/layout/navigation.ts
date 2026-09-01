@@ -1,6 +1,7 @@
 import {
 	IconArrowsExchange,
 	IconBuildingBank,
+	IconCloudComputing,
 	IconCreditCard,
 	IconHome,
 	IconId,
@@ -45,6 +46,11 @@ export const navigationGroups: ReadonlyArray<NavigationGroup> = [
 		title: "Cadastros",
 		links: [
 			{ to: "/favorecidos", label: "Favorecidos", icon: IconUsers },
+			{
+				to: "/usuarios",
+				label: "Usuários (Functions)",
+				icon: IconCloudComputing,
+			},
 			{
 				to: "/metodos-pagamento",
 				label: "Métodos de pagamento",

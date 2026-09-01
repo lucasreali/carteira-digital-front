@@ -1,0 +1,273 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Carteira Digital - Users API",
+    "description": "CRUD de usuários em Azure Functions com MongoDB Atlas.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://create-user-31082026-gwdyazh9aec0cyaa.brazilsouth-01.azurewebsites.net/api",
+      "description": "Azure Functions - Brazil South"
+    }
+  ],
+  "tags": [
+    {
+      "name": "users",
+      "description": "Operações de usuários"
+    }
+  ],
+  "paths": {
+    "/users": {
+      "post": {
+        "tags": ["users"],
+        "summary": "Cria um usuário",
+        "operationId": "createUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserInput" },
+              "example": {
+                "nome": "Lucas Reali",
+                "email": "lucas@exemplo.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário criado",
+            "headers": {
+              "Location": {
+                "description": "URI do recurso criado",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "400": {
+            "description": "Corpo malformado ou campos obrigatórios ausentes",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "Campos obrigatórios: nome, email." }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/users/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ObjectId do usuário (24 caracteres hexadecimais)",
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{24}$"
+          },
+          "example": "507f1f77bcf86cd799439011"
+        }
+      ],
+      "get": {
+        "tags": ["users"],
+        "summary": "Busca um usuário pelo ID",
+        "operationId": "readUser",
+        "responses": {
+          "200": {
+            "description": "Usuário encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/InvalidId" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "put": {
+        "tags": ["users"],
+        "summary": "Substitui os dados de um usuário",
+        "operationId": "updateUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserUpdate" },
+              "example": {
+                "nome": "Lucas Reali",
+                "email": "novo@exemplo.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário atualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido, corpo malformado ou nenhum campo atualizável",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "Nenhum campo atualizável enviado." }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "patch": {
+        "tags": ["users"],
+        "summary": "Atualiza parcialmente um usuário",
+        "operationId": "patchUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserUpdate" },
+              "example": { "email": "novo@exemplo.com" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário atualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido, corpo malformado ou nenhum campo atualizável",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "tags": ["users"],
+        "summary": "Remove um usuário",
+        "operationId": "deleteUser",
+        "responses": {
+          "204": { "description": "Usuário removido; sem corpo de resposta" },
+          "400": { "$ref": "#/components/responses/InvalidId" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ObjectId gerado pelo MongoDB",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "nome": { "type": "string", "example": "Lucas Reali" },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "lucas@exemplo.com"
+          },
+          "criadoEm": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-08-31T23:39:44.866Z"
+          },
+          "atualizadoEm": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-01T10:12:03.145Z"
+          }
+        }
+      },
+      "UserInput": {
+        "type": "object",
+        "required": ["nome", "email"],
+        "properties": {
+          "nome": { "type": "string", "example": "Lucas Reali" },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "lucas@exemplo.com"
+          }
+        }
+      },
+      "UserUpdate": {
+        "type": "object",
+        "minProperties": 1,
+        "properties": {
+          "nome": { "type": "string", "example": "Lucas Reali" },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "novo@exemplo.com"
+          }
+        },
+        "description": "Apenas nome e email são aceitos; os demais campos são ignorados."
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" }
+        }
+      }
+    },
+    "responses": {
+      "InvalidId": {
+        "description": "ID fora do formato ObjectId",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": "ID inválido." }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Usuário inexistente",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": "Usuário não encontrado." }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Falha interna do servidor",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": "Erro interno." }
+          }
+        }
+      }
+    }
+  }
+}

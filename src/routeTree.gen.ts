@@ -17,6 +17,7 @@ import { Route as AppFavorecidosRouteImport } from './routes/_app/favorecidos'
 import { Route as AppInicioRouteImport } from './routes/_app/inicio'
 import { Route as AppSacarRouteImport } from './routes/_app/sacar'
 import { Route as AppTransferirRouteImport } from './routes/_app/transferir'
+import { Route as AppUsuariosRouteImport } from './routes/_app/usuarios'
 import { Route as AppWebhooksRouteImport } from './routes/_app/webhooks'
 import { Route as AuthCriarContaRouteImport } from './routes/_auth/criar-conta'
 import { Route as AuthEntrarRouteImport } from './routes/_auth/entrar'
@@ -72,6 +73,11 @@ const AppSacarRoute = AppSacarRouteImport.update({
 const AppTransferirRoute = AppTransferirRouteImport.update({
   id: '/transferir',
   path: '/transferir',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUsuariosRoute = AppUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
   getParentRoute: () => AppRoute,
 } as any)
 const AppWebhooksRoute = AppWebhooksRouteImport.update({
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/inicio': typeof AppInicioRoute
   '/sacar': typeof AppSacarRoute
   '/transferir': typeof AppTransferirRoute
+  '/usuarios': typeof AppUsuariosRoute
   '/webhooks': typeof AppWebhooksRoute
   '/criar-conta': typeof AuthCriarContaRoute
   '/entrar': typeof AuthEntrarRoute
@@ -202,6 +209,7 @@ export interface FileRoutesByTo {
   '/inicio': typeof AppInicioRoute
   '/sacar': typeof AppSacarRoute
   '/transferir': typeof AppTransferirRoute
+  '/usuarios': typeof AppUsuariosRoute
   '/webhooks': typeof AppWebhooksRoute
   '/criar-conta': typeof AuthCriarContaRoute
   '/entrar': typeof AuthEntrarRoute
@@ -231,6 +239,7 @@ export interface FileRoutesById {
   '/_app/inicio': typeof AppInicioRoute
   '/_app/sacar': typeof AppSacarRoute
   '/_app/transferir': typeof AppTransferirRoute
+  '/_app/usuarios': typeof AppUsuariosRoute
   '/_app/webhooks': typeof AppWebhooksRoute
   '/_auth/criar-conta': typeof AuthCriarContaRoute
   '/_auth/entrar': typeof AuthEntrarRoute
@@ -259,6 +268,7 @@ export interface FileRouteTypes {
     | '/inicio'
     | '/sacar'
     | '/transferir'
+    | '/usuarios'
     | '/webhooks'
     | '/criar-conta'
     | '/entrar'
@@ -285,6 +295,7 @@ export interface FileRouteTypes {
     | '/inicio'
     | '/sacar'
     | '/transferir'
+    | '/usuarios'
     | '/webhooks'
     | '/criar-conta'
     | '/entrar'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/_app/inicio'
     | '/_app/sacar'
     | '/_app/transferir'
+    | '/_app/usuarios'
     | '/_app/webhooks'
     | '/_auth/criar-conta'
     | '/_auth/entrar'
@@ -395,6 +407,13 @@ declare module '@tanstack/react-router' {
       path: '/transferir'
       fullPath: '/transferir'
       preLoaderRoute: typeof AppTransferirRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/usuarios': {
+      id: '/_app/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof AppUsuariosRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/webhooks': {
@@ -532,6 +551,7 @@ interface AppRouteChildren {
   AppInicioRoute: typeof AppInicioRoute
   AppSacarRoute: typeof AppSacarRoute
   AppTransferirRoute: typeof AppTransferirRoute
+  AppUsuariosRoute: typeof AppUsuariosRoute
   AppWebhooksRoute: typeof AppWebhooksRoute
   AppCarteirasNovaRoute: typeof AppCarteirasNovaRoute
   AppMetodosPagamentoNovoRoute: typeof AppMetodosPagamentoNovoRoute
@@ -556,6 +576,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInicioRoute: AppInicioRoute,
   AppSacarRoute: AppSacarRoute,
   AppTransferirRoute: AppTransferirRoute,
+  AppUsuariosRoute: AppUsuariosRoute,
   AppWebhooksRoute: AppWebhooksRoute,
   AppCarteirasNovaRoute: AppCarteirasNovaRoute,
   AppMetodosPagamentoNovoRoute: AppMetodosPagamentoNovoRoute,

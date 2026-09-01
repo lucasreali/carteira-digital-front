@@ -113,6 +113,28 @@ additionally calls a standalone Azure Function (`statusFunctionUrl`, plain text,
 auth) outside the `request` client — it needs the app origin allowed in the Function
 App's CORS settings.
 
+### The users API on Azure Functions
+
+`/usuarios` (`src/routes/_app/usuarios.tsx`) talks to a *second* backend: the users CRUD
+published on Azure Functions over MongoDB Atlas (contract in
+`docs/users-function-openapi.json`, `usersFunctionBaseUrl` in `src/api/config.ts`). It is not part of the wallet contract — no auth, no envelope, no
+pagination — so it has a parallel, deliberately small stack:
+
+```
+function-http.ts      the only place that fetches the users function; turns its
+                      `{ "error": "..." }` body into the same `ApiError` the app
+                      already knows, so describeError/reportApiError keep working
+function-call-log.ts  bounded in-memory log of the calls, rendered by
+                      FunctionCallLogCard as evidence the screen hits the function
+function-user-ids.ts  localStorage store of known ObjectIds — the contract has no
+                      list operation, so the screen has to remember what it created
+```
+
+Its schemas are in `src/api/schemas/function-user.ts`, endpoints in
+`endpoints/function-users.ts` and hooks in `queries/function-users.ts`; the rules above
+(screens import from `queries/` only, keys in `queries/keys.ts`, every response parsed by
+Zod) apply unchanged.
+
 ## Conventions
 
 - Import alias is `@/` → `src/` (both `@/*` and `#/*` are mapped, but the codebase uses

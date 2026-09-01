@@ -10,3 +10,10 @@ export const mockApiEnabled = import.meta.env.VITE_ENABLE_MOCK_API === "true";
 // autenticação, e por isso não passa pelo cliente `request`.
 export const statusFunctionUrl =
 	"https://function-teste-2026-d6fgbcdub7ffhhe9.brazilsouth-01.azurewebsites.net/api/getstatus";
+
+// CRUD de usuários publicado à parte em Azure Functions (MongoDB Atlas). Tem
+// contrato e envelope de erro próprios, então não passa pelo cliente `request`.
+export const usersFunctionBaseUrl =
+	"https://create-user-31082026-gwdyazh9aec0cyaa.brazilsouth-01.azurewebsites.net/api";
+
+export const usersFunctionRegion = "Brazil South";
